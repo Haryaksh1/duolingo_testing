@@ -15,7 +15,7 @@ export const ServerDown = ({ message }: { message?: string }) => {
       </h1>
       <p className="max-w-sm text-neutral-500">
         {message ??
-          "The Lingo API isn't responding. If it's a free-tier host it may be waking up — give it a few seconds."}
+          "The Dingo server isn't responding. If it's a free-tier host it may be waking up — give it a few seconds."}
       </p>
       <Button variant="secondary" size="lg" onClick={() => router.refresh()}>
         Try again

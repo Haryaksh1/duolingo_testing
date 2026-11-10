@@ -1,4 +1,4 @@
-"""Lingo API: FastAPI routes over SQLite. Run: uvicorn main:app --reload"""
+"""Dingo API: FastAPI routes over SQLite. Run: uvicorn main:app --reload"""
 
 import json
 import os
@@ -29,7 +29,7 @@ async def lifespan(_app: FastAPI):
     yield
 
 
-app = FastAPI(title="Lingo API", lifespan=lifespan)
+app = FastAPI(title="Dingo API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.environ.get("CORS_ORIGINS", "*").split(","),

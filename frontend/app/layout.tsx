@@ -13,7 +13,7 @@ const THEME_SCRIPT = `try{var t=localStorage.getItem("theme");if(t==="dark"||(!t
 export const viewport: Viewport = { themeColor: "#58CC02" };
 
 export const metadata: Metadata = {
-  title: "Lingo — learn Spanish",
+  title: "Dingo — learn Spanish",
   description: "A playful, gamified language-learning app.",
 };
 

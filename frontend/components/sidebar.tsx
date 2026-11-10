@@ -37,9 +37,9 @@ export const Sidebar = ({ className }: { className?: string }) => (
   >
     <Link href="/learn">
       <div className="flex items-center gap-x-3 pb-7 pl-4 pt-8">
-        <Image src="/mascot.svg" alt="Lingo" height={40} width={40} />
+        <Image src="/mascot.svg" alt="Dingo" height={40} width={40} />
         <span className="text-3xl font-black tracking-tight text-green-500">
-          lingo
+          dingo
         </span>
       </div>
     </Link>

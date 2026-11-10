@@ -1,10 +1,10 @@
-# Lingo — a Duolingo-style language-learning web app
+# Dingo — a Duolingo-style language-learning web app
 
 Learn Spanish through a learning path of units and skills, lessons with six interactive exercise
 types, and the gamification loop: XP, streaks, hearts, gems, a daily goal, quests, achievements and a
 weekly leaderboard. All progress persists in SQLite.
 
-**Live demo:** https://lingo-learn-theta.vercel.app · API docs: https://lingo-api-n7jg.onrender.com/docs
+**Live demo:** https://dingo-learn.vercel.app · API docs: https://lingo-api-n7jg.onrender.com/docs
 (free tier: the API sleeps when idle, so the first load can take ~50 s while it wakes up).
 
 | | |

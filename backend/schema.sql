@@ -1,4 +1,4 @@
--- Lingo schema. Content (courses → units → skills → lessons → exercises) is static and seeded;
+-- Dingo schema. Content (courses → units → skills → lessons → exercises) is static and seeded;
 -- learner state lives in users, sessions, attempts and user_achievements.
 PRAGMA foreign_keys = ON;
 
