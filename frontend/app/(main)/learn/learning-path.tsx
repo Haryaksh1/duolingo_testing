@@ -100,7 +100,7 @@ export const LearningPath = ({ units }: { units: Unit[] }) => {
 const UnitBanner = ({ unit }: { unit: Unit }) => (
   <div
     className={cn(
-      "sticky top-[68px] z-20 flex items-center justify-between rounded-2xl border-b-4 p-4 text-white lg:top-6",
+      "sticky top-[68px] z-20 flex min-h-[112px] items-center justify-between gap-x-3 rounded-2xl border-b-4 p-4 text-white lg:top-6",
       THEME[unit.color].banner
     )}
   >

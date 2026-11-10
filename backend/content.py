@@ -10,7 +10,7 @@ COURSE = {"language": "es", "title": "Spanish", "flag": "/es.svg"}
 UNITS = [
     {
         "title": "Unit 1",
-        "description": "Greet people, order food and talk about people",
+        "description": "Greet people and order food",
         "color": "green",
         "skills": [
             {
@@ -71,7 +71,7 @@ UNITS = [
     },
     {
         "title": "Unit 2",
-        "description": "Get around town and talk about places",
+        "description": "Get around town",
         "color": "blue",
         "skills": [
             {
@@ -132,7 +132,7 @@ UNITS = [
     },
     {
         "title": "Unit 3",
-        "description": "Talk about family, time and daily routines",
+        "description": "Family and daily life",
         "color": "purple",
         "skills": [
             {
