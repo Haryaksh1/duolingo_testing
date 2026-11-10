@@ -214,6 +214,12 @@ Features beyond the brief come from Duolingo's own published findings, not guess
 | Review by predicted recall | Duolingo research (Settles & Meeder 2016): half-life regression, +12% activity |
 | Hearts, not energy | Duolingo started replacing hearts with energy on iOS in 2025; kept hearts because the brief requires them |
 
+## License
+
+Copyright © 2026 Haryaksh1. All rights reserved. This project was built as an assignment submission;
+no permission is granted to copy, modify, or reuse its code, in whole or in part. The starter files
+listed under Credits remain under their original MIT license.
+
 ## Credits
 
 The frontend began from [sanidhyy/duolingo-clone](https://github.com/sanidhyy/duolingo-clone)
