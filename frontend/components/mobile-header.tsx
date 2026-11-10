@@ -10,10 +10,10 @@ export const MobileHeader = ({ me }: { me: Me }) => (
   </header>
 );
 
-// Settings is reachable from the course flag in the header, so the bottom bar stays at six items.
+// Every section gets a tab, so the current page is always highlighted (including Settings).
 export const BottomNav = () => (
-  <nav className="fixed bottom-0 z-50 flex h-[68px] w-full items-center justify-around border-t-2 bg-background px-2 lg:hidden">
-    {NAV.filter((item) => item.href !== "/settings").map((item) => (
+  <nav className="fixed bottom-0 z-50 flex h-[68px] w-full items-center justify-around border-t-2 bg-background px-1 lg:hidden">
+    {NAV.map((item) => (
       <BottomNavItem key={item.href} {...item} />
     ))}
   </nav>

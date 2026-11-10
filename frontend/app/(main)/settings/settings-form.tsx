@@ -62,7 +62,7 @@ const ThemePicker = () => {
           type="button"
           onClick={() => applyTheme(t)}
           className={cn(
-            "rounded-2xl border-2 border-b-4 p-3 font-bold capitalize transition active:border-b-2",
+            "whitespace-nowrap rounded-2xl border-2 border-b-4 px-2 py-3 text-sm font-bold capitalize transition active:border-b-2 sm:text-base",
             theme === t && "border-sky-300 bg-sky-100 text-sky-500"
           )}
         >
