@@ -73,27 +73,19 @@ export const LearningPath = ({ units }: { units: Unit[] }) => {
                 unit={unit}
                 offset={nodeOffset(unit, i)}
                 isCurrent={skill.id === current?.id}
+                mascot={
+                  i === Math.min(1, unit.skills.length - 1)
+                    ? unit.position % 2
+                      ? "/mascot_bad.svg"
+                      : "/mascot.svg"
+                    : undefined
+                }
                 open={openId === skill.id}
                 onToggle={() =>
                   setOpenId(openId === skill.id ? null : skill.id)
                 }
               />
             ))}
-            <Image
-              src={unit.position % 2 ? "/mascot_bad.svg" : "/mascot.svg"}
-              alt=""
-              width={110}
-              height={110}
-              className={cn(
-                // Sits in the hollow of the curve. Small where the column is narrow (phones, and
-                // laptops with sidebar + rail), full size where there's room (tablets, wide screens).
-                "pointer-events-none absolute top-1/2 h-20 w-20 -translate-y-1/2 object-contain",
-                "md:h-[110px] md:w-[110px] lg:h-20 lg:w-20 xl:h-[110px] xl:w-[110px]",
-                unit.position % 2
-                  ? "left-1/2 ml-16 md:ml-24 lg:ml-16 xl:ml-24"
-                  : "right-1/2 mr-16 md:mr-24 lg:mr-16 xl:mr-24"
-              )}
-            />
           </div>
         </section>
       ))}
@@ -134,6 +126,7 @@ type SkillNodeProps = {
   unit: Unit;
   offset: number;
   isCurrent: boolean;
+  mascot?: string; // drawn beside this node, in the hollow of the curve
   open: boolean;
   onToggle: () => void;
 };
@@ -143,6 +136,7 @@ const SkillNode = ({
   unit,
   offset,
   isCurrent,
+  mascot,
   open,
   onToggle,
 }: SkillNodeProps) => {
@@ -191,6 +185,23 @@ const SkillNode = ({
       className={cn("relative my-4", isCurrent && "mt-14")}
       style={{ left: offset }}
     >
+      {mascot && (
+        // Anchored to this node (not the column), so extra spacing above the current node
+        // can't pull it out of line. 60px = the node's curve offset; then a gap to its edge.
+        <Image
+          src={mascot}
+          alt=""
+          width={110}
+          height={110}
+          className={cn(
+            "pointer-events-none absolute top-1/2 h-20 w-20 -translate-y-1/2 object-contain max-[359px]:h-16 max-[359px]:w-16",
+            "md:h-[110px] md:w-[110px] lg:h-20 lg:w-20 xl:h-[110px] xl:w-[110px]",
+            offset > 0
+              ? "right-1/2 mr-[124px] md:mr-[156px] lg:mr-[124px] xl:mr-[156px]"
+              : "left-1/2 ml-[124px] md:ml-[156px] lg:ml-[124px] xl:ml-[156px]"
+          )}
+        />
+      )}
       {isCurrent && (
         <div className="absolute -top-10 left-1/2 z-10 -translate-x-1/2">
           <div className="relative animate-bounce whitespace-nowrap rounded-xl border-2 bg-background px-3 py-2 text-sm font-extrabold uppercase tracking-wide text-green-500">
