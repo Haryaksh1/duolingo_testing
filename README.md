@@ -217,7 +217,36 @@ Features beyond the brief come from Duolingo's own published findings, not guess
 ## Credits
 
 The frontend began from [sanidhyy/duolingo-clone](https://github.com/sanidhyy/duolingo-clone)
-(MIT, see `frontend/LICENSE`): the visual shell (sidebar, button styles, exit modal, mascot and icon
+(MIT license, reproduced below): the visual shell (sidebar, button styles, exit modal, mascot and icon
 SVGs, sound effects) was kept. Its Clerk/Drizzle/Postgres/Stripe data layer and two-type quiz were
 replaced; the backend, database schema, lesson engine, path, and the gamification and practice systems
 are new. Not affiliated with Duolingo.
+
+<details>
+<summary>MIT license for the starter frontend</summary>
+
+```
+MIT License
+
+Copyright (c) 2024 Sanidhya Kumar Verma
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+</details>
