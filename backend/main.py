@@ -97,7 +97,7 @@ def me_payload(conn: Conn, user: sqlite3.Row) -> dict:
     quests = [
         ("xp", f"Earn {user['daily_goal']} XP", daily, user["daily_goal"]),
         ("lessons", "Complete 2 lessons", lessons_today, 2),
-        ("perfect", "Finish a lesson with no mistakes", perfect_today, 1),
+        ("perfect", "Get a perfect lesson", perfect_today, 1),
     ]
     return {
         "id": user["id"],

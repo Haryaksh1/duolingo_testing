@@ -33,7 +33,7 @@ export const ClaimChest = ({ quest }: { quest: Quest }) => {
       aria-label={quest.claimed ? "Chest opened" : ready ? `Open chest for ${quest.reward} gems` : "Chest locked"}
       title={quest.claimed ? `Opened: +${quest.reward} gems` : `${quest.reward} gems`}
       className={cn(
-        "shrink-0 text-3xl transition",
+        "flex shrink-0 justify-center text-3xl leading-none transition",
         ready && "animate-bounce hover:scale-110",
         !ready && !quest.claimed && "opacity-40 grayscale",
         quest.claimed && "opacity-60"

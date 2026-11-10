@@ -52,26 +52,25 @@ export const Quests = ({ me, full = false }: { me: Me; full?: boolean }) => (
       </div>
     )}
 
-    <ul className="w-full space-y-5">
+    {/* Fixed 3-column grid so every row's icon, bar and chest line up; counter sits inside the bar. */}
+    <ul className="w-full divide-y-2">
       {me.quests.map((quest) => {
         const done = quest.progress >= quest.target;
         return (
-          <li className="flex w-full items-center gap-x-3" key={quest.id}>
-            <span className="text-3xl" aria-hidden>
+          <li className="grid grid-cols-[36px_minmax(0,1fr)_36px] items-center gap-x-3 py-3" key={quest.id}>
+            <span className="flex justify-center text-3xl leading-none" aria-hidden>
               {done ? "🏆" : quest.id === "xp" ? "⚡" : quest.id === "lessons" ? "📘" : "🎯"}
             </span>
-            <div className="flex w-full flex-col gap-y-2">
-              <p className="text-sm font-bold text-neutral-700 lg:text-base">
-                {quest.title}
-              </p>
-              <div className="flex items-center gap-x-2">
+            <div className="min-w-0 space-y-2">
+              <p className="text-[15px] font-bold leading-tight text-neutral-700">{quest.title}</p>
+              <div className="relative">
                 <Progress
                   value={Math.min(100, (quest.progress / quest.target) * 100)}
-                  className="h-4 bg-neutral-200"
+                  className="h-5"
                   indicatorClassName={done ? "bg-green-500" : "bg-amber-400"}
                 />
-                <span className="shrink-0 text-xs font-extrabold text-neutral-500">
-                  {Math.min(quest.progress, quest.target)}/{quest.target}
+                <span className="absolute inset-0 flex items-center justify-center text-xs font-extrabold text-neutral-600">
+                  {Math.min(quest.progress, quest.target)} / {quest.target}
                 </span>
               </div>
             </div>
