@@ -2,6 +2,12 @@ import type { Config } from "tailwindcss";
 import colors from "tailwindcss/colors";
 import tailwindAnimate from "tailwindcss-animate";
 
+// Theme-aware shades: values live in CSS variables (globals.css) so `.dark` can flip them.
+const v = (name: string) => `rgb(var(--${name}) / <alpha-value>)`;
+const shades = (prefix: string, keys: number[]) =>
+  Object.fromEntries(keys.map((k) => [k, v(`${prefix}-${k}`)]));
+const NEUTRAL = shades("n", [50, 100, 200, 300, 400, 500, 600, 700, 800, 900]);
+
 const config = {
   darkMode: ["class"],
   content: [
@@ -22,13 +28,14 @@ const config = {
     extend: {
       colors: {
         // Duolingo-like palette mapped onto the shades the components already use.
-        green: { ...colors.green, 100: "#D7FFB8", 400: "#79D634", 500: "#58CC02", 600: "#58A700", 700: "#3F8A00" },
-        sky: { ...colors.sky, 100: "#DDF4FF", 300: "#84D8FF", 400: "#1CB0F6", 500: "#1899D6" },
-        rose: { ...colors.rose, 100: "#FFDFE0", 300: "#FFB2B2", 500: "#FF4B4B", 600: "#EA2B2B" },
-        amber: { ...colors.amber, 400: "#FFC800", 500: "#E5A500", 600: "#CD9700" },
+        green: { ...colors.green, 100: v("green-100"), 400: "#79D634", 500: "#58CC02", 600: "#58A700", 700: "#3F8A00" },
+        sky: { ...colors.sky, 100: v("sky-100"), 300: "#84D8FF", 400: "#1CB0F6", 500: "#1899D6" },
+        rose: { ...colors.rose, 100: v("rose-100"), 300: "#FFB2B2", 500: "#FF4B4B", 600: "#EA2B2B" },
+        amber: { ...colors.amber, 50: v("amber-50"), 400: "#FFC800", 500: "#E5A500", 600: "#CD9700" },
         orange: { ...colors.orange, 400: "#FF9600", 500: "#FF9600", 600: "#E08600" },
         purple: { ...colors.purple, 400: "#CE82FF", 500: "#A568CC", 600: "#8F56B5" },
-        neutral: { ...colors.neutral, 200: "#E5E5E5", 400: "#AFAFAF", 500: "#777777", 700: "#4B4B4B", 800: "#3C3C3C" },
+        neutral: NEUTRAL,
+        slate: NEUTRAL,
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

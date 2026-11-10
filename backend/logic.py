@@ -11,6 +11,8 @@ LESSON_XP = 10
 PERFECT_BONUS = 5
 PRACTICE_XP = 5
 LESSON_GEMS = 5
+TIMED_SECONDS = 90
+TIMED_GRACE = timedelta(seconds=5)  # network slack for the last answer
 
 
 def normalize(text: str) -> str:
@@ -75,7 +77,9 @@ def current_streak(streak: int, last: date | None, today: date) -> int:
     return streak if last and last >= today - timedelta(days=1) else 0
 
 
-def session_xp(kind: str, mistakes: int) -> int:
+def session_xp(kind: str, mistakes: int, correct: int = 0) -> int:
+    if kind == "timed":
+        return correct
     if kind == "practice":
         return PRACTICE_XP
     return LESSON_XP + (PERFECT_BONUS if mistakes == 0 else 0)

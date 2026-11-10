@@ -21,7 +21,7 @@ const LeaderboardPage = async () => {
           )}
         >
           <span className={cn("w-6 font-extrabold", r.rank <= 3 ? "text-green-500" : "text-neutral-500")}>{r.rank}</span>
-          <Image src={r.avatar} alt="" width={44} height={44} className="rounded-full border-2 bg-white" />
+          <Image src={r.avatar} alt="" width={44} height={44} className="rounded-full border-2 bg-background" />
           <span className="flex-1 font-bold">{r.display_name}</span>
           <span className="font-bold text-neutral-500">{r.weekly_xp} XP</span>
         </div>

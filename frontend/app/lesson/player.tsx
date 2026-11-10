@@ -35,10 +35,13 @@ const play = (src: string) => void new Audio(src).play().catch(() => {});
 
 const message = (e: unknown) => (e instanceof Error ? e.message : "Something went wrong");
 
-/** Runs one lesson (lessonId) or a practice session (no lessonId). */
-export const LessonPlayer = ({ lessonId }: { lessonId?: number }) => {
+type Mode = "lesson" | "review" | "timed";
+const KIND = { lesson: "lesson", review: "practice", timed: "timed" } as const;
+
+/** Runs a lesson, a mistakes review, or a timed challenge. Only lessons use hearts. */
+export const LessonPlayer = ({ mode, lessonId }: { mode: Mode; lessonId?: number }) => {
   const router = useRouter();
-  const practice = lessonId === undefined;
+  const practice = mode !== "lesson";
   const [phase, setPhase] = useState<Phase>("loading");
   const [error, setError] = useState("");
   const [session, setSession] = useState<Session | null>(null);
@@ -54,13 +57,17 @@ export const LessonPlayer = ({ lessonId }: { lessonId?: number }) => {
   const [outOfHearts, setOutOfHearts] = useState(false);
   const [result, setResult] = useState<CompleteResult | null>(null);
   const started = useRef(false);
+  const finishing = useRef(false);
+  const [deadline, setDeadline] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   const { width, height } = useWindowSize();
 
   const start = useCallback(async () => {
     setPhase("loading");
     try {
-      const s = await api.startSession(practice ? { kind: "practice" } : { kind: "lesson", lesson_id: lessonId });
+      const s = await api.startSession({ kind: KIND[mode], lesson_id: lessonId });
+      setDeadline(s.time_limit ? Date.now() + s.time_limit * 1000 : null);
       setSession(s);
       setQueue(s.exercises.map((_, i) => i));
       setMissed(new Set());
@@ -79,7 +86,7 @@ export const LessonPlayer = ({ lessonId }: { lessonId?: number }) => {
       setError(message(e));
       setPhase("error");
     }
-  }, [lessonId, practice, router]);
+  }, [lessonId, mode, practice, router]);
 
   useEffect(() => {
     if (started.current) return; // StrictMode runs effects twice in dev; create one session only
@@ -113,8 +120,9 @@ export const LessonPlayer = ({ lessonId }: { lessonId?: number }) => {
     }
   };
 
-  const finish = async () => {
-    if (!session) return;
+  const finish = useCallback(async () => {
+    if (!session || finishing.current) return;
+    finishing.current = true;
     setPending(true);
     try {
       const r = await api.complete(session.id);
@@ -125,15 +133,29 @@ export const LessonPlayer = ({ lessonId }: { lessonId?: number }) => {
         toast.success(`${a.icon} Achievement unlocked: ${a.title}`, { description: `+${a.reward_gems} gems` })
       );
     } catch (e) {
+      finishing.current = false;
       toast.error(message(e));
     } finally {
       setPending(false);
     }
-  };
+  }, [session]);
+
+  // Timed challenge clock: ends the run when it hits zero (the server enforces the same limit).
+  const timeUp = deadline !== null && now >= deadline;
+  useEffect(() => {
+    if (deadline === null || phase !== "playing") return;
+    const id = setInterval(() => {
+      const t = Date.now();
+      setNow(t);
+      if (t >= deadline) void finish();
+    }, 250);
+    return () => clearInterval(id);
+  }, [deadline, phase, finish]);
 
   const advance = () => {
     const rest = queue.slice(1);
-    const next = status === "wrong" ? [...rest, queue[0]] : rest;
+    // Misses come back at the end, except in timed runs where the clock decides when you stop.
+    const next = status === "wrong" && mode !== "timed" ? [...rest, queue[0]] : rest;
     if (!next.length) return void finish(); // keep the queue until completion succeeds, so Continue can retry
     setQueue(next);
     setTurn((t) => t + 1);
@@ -191,7 +213,7 @@ export const LessonPlayer = ({ lessonId }: { lessonId?: number }) => {
             <Button variant="super" size="lg" onClick={refill}>
               <GemIcon className="mr-2 h-5 w-5" /> Refill for 350 gems
             </Button>
-            <Button variant="primary" size="lg" onClick={() => router.push("/practice")}>
+            <Button variant="primary" size="lg" onClick={() => router.push("/lesson/review")}>
               Practice to earn hearts
             </Button>
             <Button variant="primaryOutline" size="lg" onClick={() => router.push("/learn")}>
@@ -206,11 +228,26 @@ export const LessonPlayer = ({ lessonId }: { lessonId?: number }) => {
   if (phase === "complete" && result) {
     return (
       <div className="flex min-h-full flex-col">
-        <Confetti recycle={false} numberOfPieces={400} tweenDuration={8000} width={width} height={height} />
+        <Confetti
+          recycle={false}
+          numberOfPieces={400}
+          tweenDuration={8000}
+          width={width}
+          height={height}
+          style={{ position: "fixed", inset: 0, pointerEvents: "none" }}
+        />
         <div className="flex flex-1 flex-col items-center justify-center gap-y-6 px-6 text-center">
           <Image src="/finish.svg" alt="" width={140} height={140} className="animate-pop" />
           <h1 className="text-3xl font-extrabold text-amber-400 lg:text-4xl">
-            {practice ? "Practice complete!" : result.mistakes ? "Lesson complete!" : "Perfect lesson!"}
+            {mode === "timed"
+              ? timeUp
+                ? "Time's up!"
+                : "Challenge complete!"
+              : practice
+                ? "Practice complete!"
+                : result.mistakes
+                  ? "Lesson complete!"
+                  : "Perfect lesson!"}
           </h1>
           <div className="flex w-full max-w-lg gap-3">
             <StatCard label="Total XP" value={`⚡ ${result.xp}`} color="bg-amber-400 border-amber-400 text-amber-500" />
@@ -219,7 +256,9 @@ export const LessonPlayer = ({ lessonId }: { lessonId?: number }) => {
               value={`🎯 ${result.accuracy}%`}
               color="bg-green-500 border-green-500 text-green-500"
             />
-            {practice ? (
+            {mode === "timed" ? (
+              <StatCard label="Correct" value={`✅ ${result.xp}`} color="bg-sky-400 border-sky-400 text-sky-400" />
+            ) : practice ? (
               <StatCard label="Hearts" value={`❤️ ${result.me.hearts}`} color="bg-rose-500 border-rose-500 text-rose-500" />
             ) : (
               <StatCard label="Gems" value={`💎 ${result.gems}`} color="bg-sky-400 border-sky-400 text-sky-400" />
@@ -268,7 +307,11 @@ export const LessonPlayer = ({ lessonId }: { lessonId?: number }) => {
 
   return (
     <div className="flex min-h-full flex-col">
-      <Header hearts={hearts} percentage={(solved / session.exercises.length) * 100} />
+      <Header
+        hearts={hearts}
+        percentage={(solved / session.exercises.length) * 100}
+        secondsLeft={deadline === null ? undefined : Math.max(0, Math.ceil((deadline - now) / 1000))}
+      />
 
       <main className="flex flex-1 justify-center px-6 py-8">
         <div key={turn} className="flex w-full max-w-[600px] animate-in fade-in slide-in-from-right-4 flex-col justify-center gap-y-8">
@@ -295,6 +338,6 @@ export const LessonPlayer = ({ lessonId }: { lessonId?: number }) => {
 const StatCard = ({ label, value, color }: { label: string; value: string; color: string }) => (
   <div className={cn("flex-1 rounded-2xl border-2", color)}>
     <p className="py-1 text-xs font-extrabold uppercase text-white">{label}</p>
-    <p className="rounded-xl bg-white px-2 py-4 text-xl font-extrabold">{value}</p>
+    <p className="rounded-xl bg-background px-2 py-4 text-xl font-extrabold">{value}</p>
   </div>
 );

@@ -6,11 +6,11 @@ export const FlameIcon = ({ className, muted }: IconProps) => (
   <svg viewBox="0 0 24 24" className={cn("h-6 w-6", className)} aria-hidden>
     <path
       d="M12 2c.6 3.2 4.5 5.4 5.8 8.6 1.6 4-1 9.4-5.8 9.4s-7.4-3.9-6.2-8c.5-1.8 1.6-3 2.6-3.8-.1 1.5.4 2.9 1.5 3.6C9.4 8.5 10.8 4.6 12 2Z"
-      fill={muted ? "#E5E5E5" : "#FF9600"}
+      className={muted ? "fill-neutral-200" : "fill-orange-400"}
     />
     <path
       d="M12 12.5c1.6 1.4 3 2.7 3 4.6A3 3 0 0 1 12 20a3 3 0 0 1-3-2.9c0-1.8 1.4-3.2 3-4.6Z"
-      fill={muted ? "#AFAFAF" : "#FFC800"}
+      className={muted ? "fill-neutral-400" : "fill-amber-400"}
     />
   </svg>
 );

@@ -94,6 +94,26 @@ def test_lesson_loop():
         assert c.post("/api/dev/advance-day").json()["streak"] == 4
         assert c.post("/api/dev/advance-day").json()["streak"] == 0
 
+        # Timed challenge: no completeness requirement, 1 XP per correct answer, no hearts lost.
+        t = c.post("/api/sessions", json={"kind": "timed"}).json()
+        assert t["time_limit"] == logic.TIMED_SECONDS and len(t["exercises"]) == 20
+        ans = answers_for(t)
+        first, second = t["exercises"][0]["id"], t["exercises"][1]["id"]
+        c.post(f"/api/sessions/{t['id']}/answer", json={"exercise_id": first, "answer": ans[first]})
+        miss = c.post(f"/api/sessions/{t['id']}/answer", json={"exercise_id": second, "answer": "nope"}).json()
+        assert not miss["correct"] and miss["hearts"] == c.get("/api/me").json()["hearts"]
+        timed = c.post(f"/api/sessions/{t['id']}/complete").json()
+        assert timed["xp"] == 1 and timed["mistakes"] == 1
+
+        # Answers after the deadline are refused.
+        late = c.post("/api/sessions", json={"kind": "timed"}).json()
+        conn = db.connect()
+        with conn:
+            conn.execute("UPDATE sessions SET started_at = '2000-01-01T00:00:00+00:00' WHERE id = ?", (late["id"],))
+        conn.close()
+        ex = late["exercises"][0]["id"]
+        assert c.post(f"/api/sessions/{late['id']}/answer", json={"exercise_id": ex, "answer": "x"}).status_code == 409
+
         board = c.get("/api/leaderboard").json()["rows"]
         assert any(r["is_me"] for r in board)
         profile = c.get("/api/profile").json()

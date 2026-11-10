@@ -47,13 +47,13 @@ export const Footer = ({ status, solution, disabled, onCheck, label }: FooterPro
       <div className="mx-auto flex min-h-[120px] max-w-[1000px] flex-col justify-center gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between lg:min-h-[140px] lg:px-10">
         {status === "correct" && (
           <div className="flex items-center gap-x-4 text-green-600">
-            <CheckCircle2 className="h-12 w-12 shrink-0 rounded-full bg-white p-1 lg:h-16 lg:w-16" />
+            <CheckCircle2 className="h-12 w-12 shrink-0 rounded-full bg-background p-1 lg:h-16 lg:w-16" />
             <p className="text-2xl font-extrabold">{praise}</p>
           </div>
         )}
         {status === "wrong" && (
           <div className="flex items-center gap-x-4 text-rose-500">
-            <XCircle className="h-12 w-12 shrink-0 rounded-full bg-white p-1 lg:h-16 lg:w-16" />
+            <XCircle className="h-12 w-12 shrink-0 rounded-full bg-background p-1 lg:h-16 lg:w-16" />
             <div>
               <p className="text-2xl font-extrabold">Correct solution:</p>
               <p className="text-lg font-semibold">{solution}</p>

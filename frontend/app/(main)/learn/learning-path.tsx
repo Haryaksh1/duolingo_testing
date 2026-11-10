@@ -125,7 +125,7 @@ const SkillNode = ({ skill, unit, offset, isCurrent, open, onToggle }: SkillNode
         locked ? "bg-neutral-200" : completed ? "bg-amber-400" : theme.node
       )}
       style={{
-        boxShadow: `0 7px 0 ${locked ? "#B7B7B7" : completed ? "#E5A500" : theme.shadow}`,
+        boxShadow: `0 7px 0 ${locked ? "rgb(var(--n-300))" : completed ? "#E5A500" : theme.shadow}`,
       }}
     >
       <Icon
@@ -141,7 +141,7 @@ const SkillNode = ({ skill, unit, offset, isCurrent, open, onToggle }: SkillNode
   return (
     <div data-skill className="relative my-3" style={{ left: offset }}>
       {isCurrent && (
-        <div className="absolute -top-10 left-1/2 z-10 -translate-x-1/2 animate-bounce whitespace-nowrap rounded-xl border-2 bg-white px-3 py-2 text-sm font-extrabold uppercase tracking-wide text-green-500">
+        <div className="absolute -top-10 left-1/2 z-10 -translate-x-1/2 animate-bounce whitespace-nowrap rounded-xl border-2 bg-background px-3 py-2 text-sm font-extrabold uppercase tracking-wide text-green-500">
           Start
           <div className="absolute -bottom-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-8 border-t-8 border-x-transparent border-t-neutral-200" />
         </div>
@@ -152,7 +152,7 @@ const SkillNode = ({ skill, unit, offset, isCurrent, open, onToggle }: SkillNode
           <CircularProgressbarWithChildren
             value={(skill.lessons_done / skill.lessons_total) * 100}
             strokeWidth={8}
-            styles={{ path: { stroke: theme.ring }, trail: { stroke: "#E5E5E5" } }}
+            styles={{ path: { stroke: theme.ring }, trail: { stroke: "rgb(var(--n-200))" } }}
           >
             {button}
           </CircularProgressbarWithChildren>
@@ -188,7 +188,7 @@ const SkillNode = ({ skill, unit, offset, isCurrent, open, onToggle }: SkillNode
             <Link
               href={`/lesson/${skill.next_lesson_id}`}
               className={cn(
-                "block w-full rounded-xl border-b-4 bg-white py-3 text-center text-sm font-extrabold uppercase tracking-wide transition active:translate-y-0.5 active:border-b-0",
+                "block w-full rounded-xl border-b-4 bg-background py-3 text-center text-sm font-extrabold uppercase tracking-wide transition active:translate-y-0.5 active:border-b-0",
                 completed ? "border-neutral-200 text-amber-500" : "border-neutral-200 text-neutral-700"
               )}
             >

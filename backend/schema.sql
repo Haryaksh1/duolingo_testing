@@ -83,15 +83,15 @@ CREATE TABLE users (
 CREATE TABLE sessions (
   id            INTEGER PRIMARY KEY,
   user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  lesson_id     INTEGER REFERENCES lessons(id) ON DELETE CASCADE,   -- NULL for practice
-  kind          TEXT NOT NULL CHECK (kind IN ('lesson', 'practice')),
+  lesson_id     INTEGER REFERENCES lessons(id) ON DELETE CASCADE,   -- NULL for practice / timed
+  kind          TEXT NOT NULL CHECK (kind IN ('lesson', 'practice', 'timed')),
   exercise_ids  TEXT NOT NULL CHECK (json_valid(exercise_ids)),
   started_at    TEXT NOT NULL,
   completed_at  TEXT,
   completed_day TEXT,                      -- simulated calendar day of completion
   xp_earned     INTEGER NOT NULL DEFAULT 0,
   mistakes      INTEGER NOT NULL DEFAULT 0,
-  CHECK (kind = 'practice' OR lesson_id IS NOT NULL)
+  CHECK (kind <> 'lesson' OR lesson_id IS NOT NULL)
 );
 CREATE INDEX idx_sessions_user_day ON sessions(user_id, completed_day);
 CREATE INDEX idx_sessions_user_lesson ON sessions(user_id, lesson_id);

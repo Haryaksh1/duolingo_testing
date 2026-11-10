@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useSyncExternalStore, useTransition } from "react";
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -23,6 +23,55 @@ const SOON = [
   { flag: "/jp.svg", name: "Japanese" },
   { flag: "/hr.svg", name: "Croatian" },
 ];
+
+type Theme = "system" | "light" | "dark";
+
+function applyTheme(theme: Theme) {
+  try {
+    if (theme === "system") localStorage.removeItem("theme");
+    else localStorage.setItem("theme", theme);
+  } catch {
+    // storage blocked: the choice just won't persist
+  }
+  const dark = theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.classList.toggle("dark", dark);
+  window.dispatchEvent(new Event("themechange"));
+}
+
+const readTheme = (): Theme => {
+  try {
+    return (localStorage.getItem("theme") as Theme | null) ?? "system";
+  } catch {
+    return "system";
+  }
+};
+
+const subscribe = (onChange: () => void) => {
+  window.addEventListener("themechange", onChange);
+  return () => window.removeEventListener("themechange", onChange);
+};
+
+const ThemePicker = () => {
+  const theme = useSyncExternalStore(subscribe, readTheme, () => "system" as Theme);
+
+  return (
+    <div className="grid grid-cols-3 gap-3">
+      {(["system", "light", "dark"] as const).map((t) => (
+        <button
+          key={t}
+          type="button"
+          onClick={() => applyTheme(t)}
+          className={cn(
+            "rounded-2xl border-2 border-b-4 p-3 font-bold capitalize transition active:border-b-2",
+            theme === t && "border-sky-300 bg-sky-100 text-sky-500"
+          )}
+        >
+          {t === "system" ? "🖥️" : t === "light" ? "☀️" : "🌙"} {t}
+        </button>
+      ))}
+    </div>
+  );
+};
 
 export const SettingsForm = ({ me }: { me: Me }) => {
   const router = useRouter();
@@ -86,6 +135,11 @@ export const SettingsForm = ({ me }: { me: Me }) => {
             </button>
           ))}
         </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-xl font-extrabold">Appearance</h2>
+        <ThemePicker />
       </section>
 
       <section className="space-y-3">

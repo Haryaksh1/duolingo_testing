@@ -8,6 +8,8 @@ import "./globals.css";
 
 const font = Nunito({ subsets: ["latin"], weight: ["400", "600", "700", "800", "900"] });
 
+const THEME_SCRIPT = `try{var t=localStorage.getItem("theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark")}catch(e){}`;
+
 export const viewport: Viewport = { themeColor: "#58CC02" };
 
 export const metadata: Metadata = {
@@ -17,9 +19,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Apply the saved theme before paint to avoid a light flash. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className={`${font.className} text-neutral-700`}>
-        <Toaster theme="light" richColors position="top-center" />
+        <Toaster theme="system" richColors position="top-center" />
         <ExitModal />
         {children}
       </body>

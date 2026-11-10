@@ -71,10 +71,11 @@ export type Answer = string | string[] | string[][];
 
 export type Session = {
   id: number;
-  kind: "lesson" | "practice";
+  kind: "lesson" | "practice" | "timed";
   lesson_id: number | null;
   title: string;
   hearts: number;
+  time_limit: number | null;
   exercises: Exercise[];
 };
 
@@ -176,7 +177,7 @@ export const api = {
   updateMe: (body: { display_name?: string; daily_goal?: number }) =>
     request<Me>("/api/me", { method: "PATCH", body: JSON.stringify(body) }),
   refillHearts: () => post<Me>("/api/hearts/refill"),
-  startSession: (body: { kind: "lesson" | "practice"; lesson_id?: number }) =>
+  startSession: (body: { kind: Session["kind"]; lesson_id?: number }) =>
     post<Session>("/api/sessions", body),
   answer: (sessionId: number, exerciseId: number, answer: Answer) =>
     post<AnswerResult>(`/api/sessions/${sessionId}/answer`, {

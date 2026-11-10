@@ -64,7 +64,7 @@ const ProfilePage = async () => {
 
       {p.stats.to_review > 0 && (
         <Link
-          href="/practice"
+          href="/lesson/review"
           className="flex items-center justify-between rounded-2xl border-2 border-b-4 border-sky-300 bg-sky-100 p-4 font-bold text-sky-500"
         >
           <span>💪 {p.stats.to_review} exercises to review</span>

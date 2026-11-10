@@ -61,7 +61,7 @@ const Bubble = ({ text, lang }: { text: string; lang: "es" | "en" }) => {
       <div className="relative mb-6 flex items-center gap-x-3 rounded-2xl border-2 px-4 py-3 text-base font-semibold lg:text-lg">
         {lang === "es" && <SpeakerButton text={text} lang="es" />}
         <span className="underline decoration-neutral-300 decoration-dashed underline-offset-4">{text}</span>
-        <span className="absolute -left-[9px] bottom-4 h-4 w-4 rotate-45 border-b-2 border-l-2 bg-white" />
+        <span className="absolute -left-[9px] bottom-4 h-4 w-4 rotate-45 border-b-2 border-l-2 bg-background" />
       </div>
     </div>
   );
@@ -163,7 +163,7 @@ const Tile = ({ word, onClick, ghost }: { word: string; onClick?: () => void; gh
     onClick={onClick}
     disabled={ghost}
     className={cn(
-      "animate-pop rounded-xl border-2 border-b-4 bg-white px-4 py-2 text-base font-semibold transition active:border-b-2 lg:text-lg",
+      "animate-pop rounded-xl border-2 border-b-4 bg-background px-4 py-2 text-base font-semibold transition active:border-b-2 lg:text-lg",
       ghost && "animate-none border-transparent bg-neutral-200 text-transparent"
     )}
   >
@@ -182,7 +182,7 @@ export const TranslateExercise = ({ exercise, draft, setDraft, status }: Props<"
   return (
     <div className="space-y-6">
       <Bubble text={exercise.source} lang={exercise.source_lang} />
-      <div className="flex min-h-[124px] flex-wrap content-start gap-2 border-y-2 py-3 [background:repeating-linear-gradient(transparent,transparent_58px,#E5E5E5_58px,#E5E5E5_60px)]">
+      <div className="flex min-h-[124px] flex-wrap content-start gap-2 border-y-2 py-3 [background:repeating-linear-gradient(transparent,transparent_58px,rgb(var(--n-200))_58px,rgb(var(--n-200))_60px)]">
         {chosen.map((i) => (
           <Tile key={i} word={exercise.tiles[i]} onClick={() => toggle(i)} />
         ))}
@@ -305,7 +305,7 @@ export const MatchExercise = ({
             "rounded-2xl border-2 border-b-4 px-4 py-3 text-lg font-semibold transition active:border-b-2",
             pick?.word === w && "border-sky-300 bg-sky-100 text-sky-500",
             wrong.includes(w) && "animate-shake border-rose-500 bg-rose-100 text-rose-500",
-            matched.includes(w) && "border-b-2 border-neutral-200 bg-white text-neutral-300"
+            matched.includes(w) && "border-b-2 border-neutral-200 bg-background text-neutral-300"
           )}
         >
           {w}

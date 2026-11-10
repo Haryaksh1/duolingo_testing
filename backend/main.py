@@ -183,7 +183,7 @@ def refill_hearts(conn: Conn = Depends(db.get_db)):
 
 
 class SessionIn(BaseModel):
-    kind: Literal["lesson", "practice"] = "lesson"
+    kind: Literal["lesson", "practice", "timed"] = "lesson"
     lesson_id: int | None = None
 
 
@@ -202,6 +202,9 @@ def start_session(body: SessionIn, conn: Conn = Depends(db.get_db)):
         title = conn.execute(
             "SELECT s.title FROM skills s JOIN lessons l ON l.skill_id = s.id WHERE l.id = ?", (body.lesson_id,)
         ).fetchone()[0]
+    elif body.kind == "timed":
+        title = "Timed challenge"
+        ids = services.practice_exercise_ids(conn, USER_ID, size=20)
     else:
         ids = services.practice_exercise_ids(conn, USER_ID)
 
@@ -217,6 +220,7 @@ def start_session(body: SessionIn, conn: Conn = Depends(db.get_db)):
         "lesson_id": body.lesson_id,
         "title": title,
         "hearts": user["hearts"],
+        "time_limit": logic.TIMED_SECONDS if body.kind == "timed" else None,
         "exercises": [services.public_exercise(by_id[i]) for i in ids],
     }
 
@@ -240,6 +244,10 @@ def answer(session_id: int, body: AnswerIn, conn: Conn = Depends(db.get_db)):
     s = open_session(conn, session_id)
     if body.exercise_id not in json.loads(s["exercise_ids"]):
         raise HTTPException(400, "Exercise is not part of this session")
+    if s["kind"] == "timed":
+        deadline = datetime.fromisoformat(s["started_at"]) + timedelta(seconds=logic.TIMED_SECONDS) + logic.TIMED_GRACE
+        if db.now() > deadline:
+            raise HTTPException(409, "time_up")
     user = services.load_user(conn, USER_ID)
     if s["kind"] == "lesson" and user["hearts"] == 0:
         raise HTTPException(409, "out_of_hearts")
@@ -270,7 +278,8 @@ def complete(session_id: int, conn: Conn = Depends(db.get_db)):
     s = open_session(conn, session_id)
     attempts = conn.execute("SELECT exercise_id, correct FROM attempts WHERE session_id = ?", (session_id,)).fetchall()
     solved = {a["exercise_id"] for a in attempts if a["correct"]}
-    if not set(json.loads(s["exercise_ids"])) <= solved:
+    # Timed runs end when the clock does, so they don't need every exercise solved.
+    if s["kind"] != "timed" and not set(json.loads(s["exercise_ids"])) <= solved:
         raise HTTPException(400, "Every exercise must be answered correctly first")
     user = services.load_user(conn, USER_ID)
     if s["kind"] == "lesson" and user["hearts"] == 0:
@@ -278,7 +287,7 @@ def complete(session_id: int, conn: Conn = Depends(db.get_db)):
 
     first_completion = s["kind"] == "lesson" and s["lesson_id"] not in services.completed_lessons(conn, USER_ID)
     mistakes = sum(1 for a in attempts if not a["correct"])
-    xp = logic.session_xp(s["kind"], mistakes)
+    xp = logic.session_xp(s["kind"], mistakes, correct=len(solved))
     gems = logic.LESSON_GEMS if s["kind"] == "lesson" else 0
     hearts = min(logic.MAX_HEARTS, user["hearts"] + 1) if s["kind"] == "practice" else user["hearts"]
     today = db.today(conn)
