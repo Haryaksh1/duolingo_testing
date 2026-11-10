@@ -402,7 +402,8 @@ def complete(session_id: int, conn: Conn = Depends(db.get_db)):
     freezes = user["streak_freezes"]
     if extended:
         freezes = logic.freezes_after_practice(streak, max(user["longest_streak"], streak), freezes)
-    freezes_in_streak = 0 if streak == 1 else user["freezes_in_streak"]
+    # A new streak starts perfect; a restored one never is (it was broken).
+    freezes_in_streak = 1 if earned_back else 0 if streak == 1 else user["freezes_in_streak"]
 
     conn.execute(
         """UPDATE users SET xp = xp + ?, gems = gems + ?, hearts = ?, streak = ?,

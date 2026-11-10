@@ -6,6 +6,17 @@ export type Quest = {
   title: string;
   progress: number;
   target: number;
+  reward: number;
+  claimed: boolean;
+};
+
+export type DayStatus = "practiced" | "frozen" | "today" | "missed" | "future";
+
+export type EarnBack = {
+  lost_streak: number;
+  lessons_done: number;
+  lessons_needed: number;
+  deadline: string;
 };
 
 export type Me = {
@@ -21,6 +32,14 @@ export type Me = {
   refill_cost: number;
   streak: number;
   streak_extended_today: boolean;
+  perfect_streak: boolean;
+  streak_freezes: number;
+  max_freezes: number;
+  freezes_unlocked: boolean;
+  freeze_cost: number;
+  week: { day: string; status: DayStatus }[];
+  earn_back: EarnBack | null;
+  league: string;
   longest_streak: number;
   daily_goal: number;
   daily_xp: number;
@@ -77,6 +96,7 @@ export type Session = {
   hearts: number;
   time_limit: number | null;
   exercises: Exercise[];
+  glossary: Record<string, string>;
 };
 
 export type AnswerResult = {
@@ -100,6 +120,9 @@ export type CompleteResult = {
   accuracy: number;
   first_completion: boolean;
   streak_extended: boolean;
+  streak_milestone: boolean;
+  earned_back: boolean;
+  freezes_gained: number;
   achievements: UnlockedAchievement[];
   me: Me;
 };
@@ -129,8 +152,31 @@ export type Profile = {
   history: { day: string; xp: number }[];
 };
 
+export type LeagueResult = {
+  week_start: string;
+  rank: number;
+  result: "promoted" | "demoted" | "stayed";
+  from_league: string;
+  to_league: string;
+  gems: number;
+};
+
+export type Guidebook = {
+  id: number;
+  title: string;
+  description: string;
+  color: Unit["color"];
+  words: { es: string; en: string }[];
+  phrases: { es: string; en: string }[];
+};
+
 export type Leaderboard = {
   league: string;
+  tier: number;
+  tiers: string[];
+  promote: number;
+  demote: number;
+  result: LeagueResult | null;
   week_start: string;
   days_left: number;
   rows: {
@@ -177,6 +223,10 @@ export const api = {
   updateMe: (body: { display_name?: string; daily_goal?: number }) =>
     request<Me>("/api/me", { method: "PATCH", body: JSON.stringify(body) }),
   refillHearts: () => post<Me>("/api/hearts/refill"),
+  buyFreeze: () => post<Me>("/api/shop/freeze"),
+  claimQuest: (id: string) => post<Me>(`/api/quests/${id}/claim`),
+  leaderboardSeen: () => post<{ ok: boolean }>("/api/leaderboard/seen"),
+  guidebook: (unitId: number) => request<Guidebook>(`/api/units/${unitId}/guidebook`),
   startSession: (body: { kind: Session["kind"]; lesson_id?: number }) =>
     post<Session>("/api/sessions", body),
   answer: (sessionId: number, exerciseId: number, answer: Answer) =>

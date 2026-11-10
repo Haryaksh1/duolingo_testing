@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-import { Snail, Volume2 } from "lucide-react";
+import { Snail } from "lucide-react";
 import Image from "next/image";
 import { useKey } from "react-use";
 
+import { SpeakerButton } from "@/components/speaker-button";
 import type { Answer, Exercise } from "@/lib/api";
 import { speak } from "@/lib/speech";
 import { cn } from "@/lib/utils";
@@ -35,19 +36,40 @@ const statusClasses = (selected: boolean, status: Status) =>
     selected && status === "wrong" && "animate-shake border-rose-500 bg-rose-100 text-rose-500"
   );
 
-const SpeakerButton = ({ text, lang, size = "sm" }: { text: string; lang: "es" | "en"; size?: "sm" | "lg" }) => (
-  <button
-    type="button"
-    onClick={() => speak(text, lang)}
-    aria-label="Play audio"
-    className={cn(
-      "flex shrink-0 items-center justify-center rounded-xl bg-sky-400 text-white transition active:translate-y-1",
-      size === "lg" ? "h-24 w-24 rounded-2xl shadow-[0_5px_0_#1899D6]" : "h-9 w-9 shadow-[0_3px_0_#1899D6]"
-    )}
-  >
-    <Volume2 className={size === "lg" ? "h-12 w-12" : "h-5 w-5"} />
-  </button>
-);
+/** Spanish word -> English hint for this session (Duolingo-style hover hints). */
+export const GlossaryContext = createContext<Record<string, string>>({});
+
+/** Spanish text whose known words show their meaning on hover, or on tap (focus) on touch screens. */
+const HintText = ({ text }: { text: string }) => {
+  const glossary = useContext(GlossaryContext);
+  return (
+    <span>
+      {text.split(/(\s+)/).map((token, i) => {
+        const [, pre, word, post] = token.match(/^([^\p{L}]*)([\p{L}]+)([^\p{L}]*)$/u) ?? [];
+        const hint = word && glossary[word.toLowerCase()];
+        if (!hint) return token;
+        return (
+          <span key={i}>
+            {pre}
+            <span
+              tabIndex={0}
+              className="group relative cursor-help underline decoration-neutral-300 decoration-dashed decoration-2 underline-offset-4 outline-none"
+            >
+              {word}
+              <span
+                role="tooltip"
+                className="invisible absolute left-1/2 top-full z-30 mt-2 -translate-x-1/2 whitespace-nowrap rounded-xl border-2 bg-background px-3 py-1.5 text-sm font-bold text-neutral-700 opacity-0 shadow-md transition group-hover:visible group-hover:opacity-100 group-focus:visible group-focus:opacity-100"
+              >
+                {hint}
+              </span>
+            </span>
+            {post}
+          </span>
+        );
+      })}
+    </span>
+  );
+};
 
 /** Mascot with a speech bubble, used for sentence prompts. */
 const Bubble = ({ text, lang }: { text: string; lang: "es" | "en" }) => {
@@ -60,7 +82,7 @@ const Bubble = ({ text, lang }: { text: string; lang: "es" | "en" }) => {
       <Image src="/mascot.svg" alt="" width={96} height={96} className="h-20 w-20 lg:h-28 lg:w-28" />
       <div className="relative mb-6 flex items-center gap-x-3 rounded-2xl border-2 px-4 py-3 text-base font-semibold lg:text-lg">
         {lang === "es" && <SpeakerButton text={text} lang="es" />}
-        <span className="underline decoration-neutral-300 decoration-dashed underline-offset-4">{text}</span>
+        {lang === "es" ? <HintText text={text} /> : <span>{text}</span>}
         <span className="absolute -left-[9px] bottom-4 h-4 w-4 rotate-45 border-b-2 border-l-2 bg-background" />
       </div>
     </div>
@@ -124,7 +146,7 @@ export const FillExercise = ({ exercise, draft, setDraft, status }: Props<"fill"
   <div className="space-y-8">
     <p className="text-sm font-bold text-neutral-400">“{exercise.translation}”</p>
     <p className="flex flex-wrap items-end gap-x-2 gap-y-3 text-2xl font-bold">
-      <span>{exercise.before}</span>
+      <HintText text={exercise.before} />
       <span
         className={cn(
           "inline-flex min-w-[110px] justify-center border-b-2 border-neutral-300 px-2 pb-1",
@@ -135,7 +157,7 @@ export const FillExercise = ({ exercise, draft, setDraft, status }: Props<"fill"
       >
         {draft || " "}
       </span>
-      <span>{exercise.after}</span>
+      <HintText text={exercise.after} />
     </p>
     <div className="flex flex-wrap gap-3">
       {exercise.options.map((o) => (

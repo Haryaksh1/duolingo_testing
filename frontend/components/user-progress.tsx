@@ -38,25 +38,40 @@ const Stat = ({
   </div>
 );
 
-/** Weekday dots for the current streak: the last `streak` days ending today (or yesterday). */
-const StreakWeek = ({ me }: { me: Me }) => {
-  const today = new Date(`${me.today}T12:00:00`);
-  const todayIdx = (today.getDay() + 6) % 7; // Monday = 0
-  const lastActive = me.streak_extended_today ? todayIdx : todayIdx - 1;
+/** This week, Monday to Sunday: practised days burn, frozen days show a snowflake. */
+const StreakWeek = ({ me }: { me: Me }) => (
+  <div className="mt-3 flex justify-between rounded-xl bg-neutral-50 p-3">
+    {me.week.map(({ day, status }, i) => (
+      <div key={day} className="flex flex-col items-center gap-y-1" title={`${day}: ${status}`}>
+        <span className={cn("text-xs font-extrabold", status === "today" ? "text-orange-500" : "text-neutral-400")}>
+          {DAYS[i]}
+        </span>
+        {status === "frozen" ? (
+          <span className="flex h-6 w-6 items-center justify-center text-lg leading-none">❄️</span>
+        ) : (
+          <FlameIcon muted={status !== "practiced"} perfect={status === "practiced" && me.perfect_streak} className="h-6 w-6" />
+        )}
+      </div>
+    ))}
+  </div>
+);
+
+const StreakMessage = ({ me }: { me: Me }) => {
+  if (me.earn_back) {
+    const left = me.earn_back.lessons_needed - me.earn_back.lessons_done;
+    return (
+      <p className="text-sm font-semibold text-rose-500">
+        You lost your {me.earn_back.lost_streak} day streak. Finish {left} more lesson{left === 1 ? "" : "s"} by{" "}
+        {me.earn_back.deadline} to earn it back!
+      </p>
+    );
+  }
   return (
-    <div className="mt-3 flex justify-between rounded-xl bg-neutral-50 p-3">
-      {DAYS.map((d, i) => {
-        const active = me.streak > 0 && i <= lastActive && i > lastActive - me.streak;
-        return (
-          <div key={i} className="flex flex-col items-center gap-y-1">
-            <span className={cn("text-xs font-extrabold", i === todayIdx ? "text-orange-500" : "text-neutral-400")}>
-              {d}
-            </span>
-            <FlameIcon muted={!active} className="h-6 w-6" />
-          </div>
-        );
-      })}
-    </div>
+    <p className="text-sm text-neutral-500">
+      {me.streak_extended_today
+        ? "You've practised today. Come back tomorrow to keep it going!"
+        : "Do a lesson today to extend your streak."}
+    </p>
   );
 };
 
@@ -71,17 +86,21 @@ export const UserProgress = ({ me }: { me: Me }) => (
       className={me.streak_extended_today ? "text-orange-500" : "text-neutral-400"}
       popover={
         <>
-          <p className="text-lg font-extrabold">{me.streak} day streak</p>
-          <p className="text-sm text-neutral-500">
-            {me.streak_extended_today
-              ? "You've practised today. Come back tomorrow to keep it going!"
-              : "Do a lesson today to extend your streak."}
+          <p className="text-lg font-extrabold">
+            {me.streak} day streak
+            {me.perfect_streak && me.streak >= 2 && <span className="ml-2 text-sm text-amber-500">✨ Perfect</span>}
           </p>
+          <StreakMessage me={me} />
           <StreakWeek me={me} />
+          <p className="mt-3 text-sm font-bold text-sky-500">
+            {me.freezes_unlocked
+              ? `❄️ Streak freezes: ${me.streak_freezes} / ${me.max_freezes}`
+              : "❄️ Reach a 5 day streak to unlock streak freezes"}
+          </p>
         </>
       }
     >
-      <FlameIcon muted={!me.streak_extended_today} />
+      <FlameIcon muted={!me.streak_extended_today} perfect={me.streak_extended_today && me.perfect_streak} />
       {me.streak}
     </Stat>
 

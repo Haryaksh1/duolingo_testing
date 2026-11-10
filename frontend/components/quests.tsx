@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import type { Me } from "@/lib/api";
 
+import { ClaimChest } from "./claim-chest";
+
 export const DailyGoal = ({ me }: { me: Me }) => {
   const done = me.daily_xp >= me.daily_goal;
   return (
@@ -73,6 +75,7 @@ export const Quests = ({ me, full = false }: { me: Me; full?: boolean }) => (
                 </span>
               </div>
             </div>
+            <ClaimChest quest={quest} />
           </li>
         );
       })}

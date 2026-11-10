@@ -186,6 +186,7 @@ def test_retention_features():
         results = [play_lesson(c) for _ in range(3)]
         assert [r["earned_back"] for r in results] == [False, False, True]
         assert results[-1]["me"]["streak"] == 7 and results[-1]["me"]["earn_back"] is None
+        assert not results[-1]["me"]["perfect_streak"]
 
         # Quest chest: 3 lessons today beats "Complete 2 lessons"; a chest opens only once.
         gems = results[-1]["me"]["gems"]

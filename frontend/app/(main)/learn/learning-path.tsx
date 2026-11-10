@@ -43,7 +43,7 @@ export const LearningPath = ({ units }: { units: Unit[] }) => {
     <div className="mx-auto max-w-[600px]">
       {units.map((unit) => (
         <section key={unit.id} className="mb-14">
-          <UnitBanner unit={unit} nextLessonId={current?.next_lesson_id} />
+          <UnitBanner unit={unit} />
           <div className="relative mt-4 flex flex-col items-center">
             {unit.skills.map((skill, i) => (
               <SkillNode
@@ -77,7 +77,7 @@ export const LearningPath = ({ units }: { units: Unit[] }) => {
   );
 };
 
-const UnitBanner = ({ unit, nextLessonId }: { unit: Unit; nextLessonId?: number }) => (
+const UnitBanner = ({ unit }: { unit: Unit }) => (
   <div
     className={cn(
       "sticky top-[68px] z-20 flex items-center justify-between rounded-2xl border-b-4 p-4 text-white lg:top-6",
@@ -88,14 +88,13 @@ const UnitBanner = ({ unit, nextLessonId }: { unit: Unit; nextLessonId?: number 
       <p className="text-sm font-extrabold uppercase tracking-wide opacity-80">{unit.title}</p>
       <h2 className="text-xl font-extrabold">{unit.description}</h2>
     </div>
-    {unit.skills.some((s) => s.state === "active") && nextLessonId && (
-      <Link
-        href={`/lesson/${nextLessonId}`}
-        className="hidden items-center gap-x-2 rounded-xl border-2 border-b-4 border-white/40 px-4 py-2 text-sm font-extrabold uppercase tracking-wide hover:bg-white/10 sm:flex"
-      >
-        <NotebookText className="h-5 w-5" /> Continue
-      </Link>
-    )}
+    <Link
+      href={`/guidebook/${unit.id}`}
+      aria-label={`${unit.title} guidebook`}
+      className="flex shrink-0 items-center gap-x-2 rounded-xl border-2 border-b-4 border-white/40 p-2 text-sm font-extrabold uppercase tracking-wide hover:bg-white/10 sm:px-4"
+    >
+      <NotebookText className="h-5 w-5" /> <span className="hidden sm:inline">Guidebook</span>
+    </Link>
   </div>
 );
 
