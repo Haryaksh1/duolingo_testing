@@ -4,6 +4,9 @@ Learn Spanish through a learning path of units and skills, lessons with six inte
 types, and the gamification loop: XP, streaks, hearts, gems, a daily goal, quests, achievements and a
 weekly leaderboard. All progress persists in SQLite.
 
+**Live demo:** https://lingo-learn-theta.vercel.app · API docs: https://lingo-api-n7jg.onrender.com/docs
+(free tier: the API sleeps when idle, so the first load can take ~50 s while it wakes up).
+
 | | |
 |---|---|
 | Frontend | Next.js 16 (App Router) · TypeScript · Tailwind CSS · Radix UI |
@@ -155,6 +158,13 @@ Design choices:
 | `POST /api/dev/reset` | rebuild and reseed the database |
 
 Interactive docs: `http://localhost:8000/docs`.
+
+## Deployment
+
+- **Frontend** on Vercel: root directory `frontend`, env `NEXT_PUBLIC_API_URL=https://lingo-api-n7jg.onrender.com`.
+- **Backend** on Render from `render.yaml` (free web service, `CORS_ORIGINS` set to the Vercel URL).
+- SQLite lives on the service's disk, which is ephemeral on Render's free tier: the database is
+  re-seeded to the demo state whenever the service restarts or redeploys.
 
 ## Assumptions
 

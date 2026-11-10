@@ -11,6 +11,6 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.10
-      # Set to the Vercel URL after the frontend is deployed, e.g. https://lingo-xyz.vercel.app
+      # Only the production frontend may call the API from a browser.
       - key: CORS_ORIGINS
-        value: "*"
+        value: https://lingo-learn-theta.vercel.app
