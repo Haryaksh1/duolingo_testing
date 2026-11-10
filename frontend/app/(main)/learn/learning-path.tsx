@@ -19,8 +19,9 @@ const THEME = {
   purple: { banner: "bg-purple-400 border-purple-500", node: "bg-purple-400", shadow: "#A568CC", ring: "#CE82FF" },
 } as const;
 
-// Snake offsets (px) repeating every 8 nodes: centre, right, right, centre, left, left...
-const OFFSETS = [0, 44, 70, 44, 0, -44, -70, -44];
+// Each unit's nodes bow out to one side (alternating per unit); the mascot sits in the hollow.
+const CURVE = [0, 60, 0, -60];
+const nodeOffset = (unit: Unit, i: number) => CURVE[i % CURVE.length] * (unit.position % 2 ? -1 : 1);
 
 export const LearningPath = ({ units }: { units: Unit[] }) => {
   const [openId, setOpenId] = useState<number | null>(null);
@@ -50,7 +51,7 @@ export const LearningPath = ({ units }: { units: Unit[] }) => {
                 key={skill.id}
                 skill={skill}
                 unit={unit}
-                offset={OFFSETS[i % OFFSETS.length]}
+                offset={nodeOffset(unit, i)}
                 isCurrent={skill.id === current?.id}
                 open={openId === skill.id}
                 onToggle={() => setOpenId(openId === skill.id ? null : skill.id)}
@@ -59,11 +60,12 @@ export const LearningPath = ({ units }: { units: Unit[] }) => {
             <Image
               src={unit.position % 2 ? "/mascot_bad.svg" : "/mascot.svg"}
               alt=""
-              width={120}
-              height={120}
+              width={110}
+              height={110}
               className={cn(
-                "pointer-events-none absolute top-24 hidden opacity-90 xl:block",
-                unit.position % 2 ? "right-1/2 mr-32" : "left-1/2 ml-32"
+                // only where the column is wide enough to keep it clear of the nodes
+                "pointer-events-none absolute top-1/2 hidden -translate-y-1/2 md:block lg:hidden xl:block",
+                unit.position % 2 ? "left-1/2 ml-24" : "right-1/2 mr-24"
               )}
             />
           </div>
@@ -138,7 +140,7 @@ const SkillNode = ({ skill, unit, offset, isCurrent, open, onToggle }: SkillNode
   );
 
   return (
-    <div data-skill className="relative my-3" style={{ left: offset }}>
+    <div data-skill className={cn("relative my-4", isCurrent && "mt-14")} style={{ left: offset }}>
       {isCurrent && (
         <div className="absolute -top-10 left-1/2 z-10 -translate-x-1/2 animate-bounce whitespace-nowrap rounded-xl border-2 bg-background px-3 py-2 text-sm font-extrabold uppercase tracking-wide text-green-500">
           Start
@@ -160,18 +162,16 @@ const SkillNode = ({ skill, unit, offset, isCurrent, open, onToggle }: SkillNode
         <div className="flex h-[100px] w-[100px] items-center justify-center">{button}</div>
       )}
 
-      <p className="mt-1 text-center text-xs font-extrabold uppercase tracking-wide text-neutral-500">
-        {skill.icon} {skill.title}
-      </p>
-
       {open && (
         <div
           className={cn(
-            "absolute left-1/2 top-[118px] z-30 w-[290px] -translate-x-1/2 animate-pop rounded-2xl p-4 text-white",
+            "absolute left-1/2 top-[108px] z-30 w-[290px] -translate-x-1/2 animate-pop rounded-2xl p-4 text-white",
             locked ? "border-2 bg-neutral-100 text-neutral-400" : completed ? "bg-amber-400" : theme.node
           )}
         >
-          <h3 className="text-lg font-extrabold">{skill.title}</h3>
+          <h3 className="text-lg font-extrabold">
+            {skill.icon} {skill.title}
+          </h3>
           <p className="mb-3 font-bold opacity-90">
             {locked
               ? "Complete all levels above to unlock this!"
