@@ -2,6 +2,9 @@
 -- learner state lives in users, sessions, attempts and user_achievements.
 PRAGMA foreign_keys = ON;
 
+DROP TABLE IF EXISTS league_results;
+DROP TABLE IF EXISTS quest_claims;
+DROP TABLE IF EXISTS streak_freeze_days;
 DROP TABLE IF EXISTS user_achievements;
 DROP TABLE IF EXISTS achievements;
 DROP TABLE IF EXISTS attempts;
@@ -73,7 +76,13 @@ CREATE TABLE users (
   hearts_updated_at TEXT NOT NULL,         -- UTC ISO timestamp; regeneration is computed from it
   streak            INTEGER NOT NULL DEFAULT 0 CHECK (streak >= 0),
   longest_streak    INTEGER NOT NULL DEFAULT 0 CHECK (longest_streak >= 0),
-  last_streak_date  TEXT,                  -- last (simulated) day the learner earned XP
+  last_streak_date  TEXT,                  -- last (simulated) day the streak counted (practice or freeze)
+  streak_freezes    INTEGER NOT NULL DEFAULT 0 CHECK (streak_freezes BETWEEN 0 AND 3),
+  freezes_in_streak INTEGER NOT NULL DEFAULT 0,  -- 0 means a "perfect" streak
+  lost_streak       INTEGER NOT NULL DEFAULT 0,  -- streak available to earn back (0 = none)
+  lost_streak_on    TEXT,                         -- day the streak was lost; earn-back window starts here
+  league_tier       INTEGER NOT NULL DEFAULT 0 CHECK (league_tier BETWEEN 0 AND 9),
+  league_week       TEXT,                         -- Monday of the week the tier applies to
   daily_goal        INTEGER NOT NULL DEFAULT 20 CHECK (daily_goal IN (10, 20, 30, 50)),
   created_at        TEXT NOT NULL
 );
@@ -124,6 +133,35 @@ CREATE TABLE user_achievements (
   achievement_id INTEGER NOT NULL REFERENCES achievements(id) ON DELETE CASCADE,
   unlocked_at    TEXT NOT NULL,
   PRIMARY KEY (user_id, achievement_id)
+);
+
+-- Days a streak freeze covered (shown as snowflakes on the streak calendar).
+CREATE TABLE streak_freeze_days (
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  day     TEXT NOT NULL,
+  PRIMARY KEY (user_id, day)
+);
+
+-- One chest per daily quest per day.
+CREATE TABLE quest_claims (
+  user_id  INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  day      TEXT NOT NULL,
+  quest_id TEXT NOT NULL CHECK (quest_id IN ('xp', 'lessons', 'perfect')),
+  gems     INTEGER NOT NULL,
+  PRIMARY KEY (user_id, day, quest_id)
+);
+
+-- Weekly league history; `seen` drives the end-of-week results popup.
+CREATE TABLE league_results (
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  week_start TEXT NOT NULL,
+  tier       INTEGER NOT NULL,
+  rank       INTEGER NOT NULL,
+  new_tier   INTEGER NOT NULL,
+  result     TEXT NOT NULL CHECK (result IN ('promoted', 'demoted', 'stayed')),
+  gems       INTEGER NOT NULL DEFAULT 0,
+  seen       INTEGER NOT NULL DEFAULT 0 CHECK (seen IN (0, 1)),
+  PRIMARY KEY (user_id, week_start)
 );
 
 -- Single-row clock offset so day-based logic (streaks, daily goal) is testable.

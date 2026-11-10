@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 
 import db
 import logic
+from content import GLOSSARY
 import seed
 import services
 
@@ -45,8 +46,7 @@ def not_found(_request: Request, exc: services.NotFound):
 Conn = sqlite3.Connection
 
 
-def parse_day(value: str | None) -> date | None:
-    return date.fromisoformat(value) if value else None
+parse_day = services.parse_day
 
 
 # ---------------------------------------------------------------- learner
@@ -65,6 +65,40 @@ def me_payload(conn: Conn, user: sqlite3.Row) -> dict:
     if user["hearts"] < logic.MAX_HEARTS:
         next_heart = (datetime.fromisoformat(user["hearts_updated_at"]) + logic.HEART_REGEN).isoformat()
     course = conn.execute("SELECT title, flag FROM courses WHERE id = ?", (user["course_id"],)).fetchone()
+    start, end = services.week_bounds(today)
+    practiced = {r[0] for r in conn.execute(
+        "SELECT DISTINCT completed_day FROM sessions WHERE user_id = ? AND completed_day BETWEEN ? AND ?",
+        (user["id"], start.isoformat(), end.isoformat()))}
+    frozen = {r[0] for r in conn.execute(
+        "SELECT day FROM streak_freeze_days WHERE user_id = ? AND day BETWEEN ? AND ?",
+        (user["id"], start.isoformat(), end.isoformat()))}
+    week = []
+    for i in range(7):
+        d = start + timedelta(days=i)
+        key = d.isoformat()
+        status = ("practiced" if key in practiced else "frozen" if key in frozen
+                  else "today" if d == today else "future" if d > today else "missed")
+        week.append({"day": key, "status": status})
+    claimed = {r[0] for r in conn.execute(
+        "SELECT quest_id FROM quest_claims WHERE user_id = ? AND day = ?", (user["id"], today.isoformat()))}
+    earn_back = None
+    if user["lost_streak"]:
+        lost_on = parse_day(user["lost_streak_on"])
+        done = conn.execute(
+            "SELECT COUNT(*) FROM sessions WHERE user_id = ? AND kind = 'lesson' AND completed_day >= ?",
+            (user["id"], lost_on.isoformat())).fetchone()[0]
+        earn_back = {
+            "lost_streak": user["lost_streak"],
+            "lessons_done": done,
+            "lessons_needed": logic.EARN_BACK_LESSONS,
+            "deadline": (lost_on + timedelta(days=logic.EARN_BACK_DAYS)).isoformat(),
+        }
+    streak = logic.current_streak(user["streak"], last, today)
+    quests = [
+        ("xp", f"Earn {user['daily_goal']} XP", daily, user["daily_goal"]),
+        ("lessons", "Complete 2 lessons", lessons_today, 2),
+        ("perfect", "Finish a lesson with no mistakes", perfect_today, 1),
+    ]
     return {
         "id": user["id"],
         "display_name": user["display_name"],
@@ -76,16 +110,24 @@ def me_payload(conn: Conn, user: sqlite3.Row) -> dict:
         "max_hearts": logic.MAX_HEARTS,
         "next_heart_at": next_heart,
         "refill_cost": logic.REFILL_COST,
-        "streak": logic.current_streak(user["streak"], last, today),
+        "streak": streak,
         "streak_extended_today": last == today,
+        "perfect_streak": streak > 0 and user["freezes_in_streak"] == 0,
+        "streak_freezes": user["streak_freezes"],
+        "max_freezes": logic.MAX_FREEZES,
+        "freezes_unlocked": user["longest_streak"] >= logic.FREEZE_UNLOCK_STREAK,
+        "freeze_cost": logic.FREEZE_COST,
+        "week": week,
+        "earn_back": earn_back,
+        "league": logic.LEAGUES[user["league_tier"]],
         "longest_streak": user["longest_streak"],
         "daily_goal": user["daily_goal"],
         "daily_xp": daily,
         "today": today.isoformat(),
         "quests": [
-            {"id": "xp", "title": f"Earn {user['daily_goal']} XP", "progress": daily, "target": user["daily_goal"]},
-            {"id": "lessons", "title": "Complete 2 lessons", "progress": lessons_today, "target": 2},
-            {"id": "perfect", "title": "Finish a lesson with no mistakes", "progress": perfect_today, "target": 1},
+            {"id": qid, "title": title, "progress": progress, "target": target,
+             "reward": logic.QUEST_GEMS[qid], "claimed": qid in claimed}
+            for qid, title, progress, target in quests
         ],
     }
 
@@ -132,7 +174,7 @@ def get_profile(conn: Conn = Depends(db.get_db)):
     return {
         "me": me_payload(conn, user),
         "created_at": user["created_at"],
-        "stats": {**current, "to_review": len(services.weak_exercise_ids(conn, USER_ID, 1000))},
+        "stats": {**current, "to_review": len(services.due_exercise_ids(conn, USER_ID))},
         "achievements": [
             {
                 "code": a["code"], "title": a["title"], "description": a["description"], "icon": a["icon"],
@@ -147,22 +189,72 @@ def get_profile(conn: Conn = Depends(db.get_db)):
 
 @app.get("/api/leaderboard")
 def get_leaderboard(conn: Conn = Depends(db.get_db)):
+    user = services.load_user(conn, USER_ID)  # settles any finished week first
+    tier = user["league_tier"]
     start, end = services.week_bounds(db.today(conn))
-    rows = conn.execute(
-        """SELECT u.id, u.display_name, u.avatar, COALESCE(SUM(s.xp_earned), 0) AS weekly_xp
-           FROM users u
-           LEFT JOIN sessions s ON s.user_id = u.id AND s.completed_day BETWEEN ? AND ?
-           GROUP BY u.id
-           ORDER BY weekly_xp DESC, u.id
-           LIMIT 30""",
-        (start.isoformat(), end.isoformat()),
-    ).fetchall()
+    rows = services.weekly_ranking(conn, start)
+    result = conn.execute(
+        "SELECT * FROM league_results WHERE user_id = ? AND seen = 0 ORDER BY week_start DESC LIMIT 1", (USER_ID,)
+    ).fetchone()
     return {
-        "league": "Bronze",
+        "league": logic.LEAGUES[tier],
+        "tier": tier,
+        "tiers": logic.LEAGUES,
+        "promote": logic.PROMOTE[tier],
+        "demote": logic.DEMOTE[tier],
         "week_start": start.isoformat(),
         "days_left": (end - db.today(conn)).days,
         "rows": [{"rank": i + 1, **dict(r), "is_me": r["id"] == USER_ID} for i, r in enumerate(rows)],
+        "result": result and {
+            "week_start": result["week_start"],
+            "rank": result["rank"],
+            "result": result["result"],
+            "from_league": logic.LEAGUES[result["tier"]],
+            "to_league": logic.LEAGUES[result["new_tier"]],
+            "gems": result["gems"],
+        },
     }
+
+
+@app.post("/api/leaderboard/seen")
+def leaderboard_seen(conn: Conn = Depends(db.get_db)):
+    conn.execute("UPDATE league_results SET seen = 1 WHERE user_id = ?", (USER_ID,))
+    return {"ok": True}
+
+
+@app.post("/api/shop/freeze")
+def buy_freeze(conn: Conn = Depends(db.get_db)):
+    user = services.load_user(conn, USER_ID)
+    if user["streak_freezes"] >= logic.MAX_FREEZES:
+        raise HTTPException(400, "You already have the maximum number of streak freezes")
+    if user["gems"] < logic.FREEZE_COST:
+        raise HTTPException(400, "Not enough gems")
+    conn.execute(
+        "UPDATE users SET streak_freezes = streak_freezes + 1, gems = gems - ? WHERE id = ?",
+        (logic.FREEZE_COST, USER_ID),
+    )
+    return me_payload(conn, services.load_user(conn, USER_ID))
+
+
+@app.post("/api/quests/{quest_id}/claim")
+def claim_quest(quest_id: Literal["xp", "lessons", "perfect"], conn: Conn = Depends(db.get_db)):
+    me = me_payload(conn, services.load_user(conn, USER_ID))
+    quest = next(q for q in me["quests"] if q["id"] == quest_id)
+    if quest["claimed"]:
+        raise HTTPException(409, "Chest already opened")
+    if quest["progress"] < quest["target"]:
+        raise HTTPException(400, "Quest not finished yet")
+    conn.execute(
+        "INSERT INTO quest_claims (user_id, day, quest_id, gems) VALUES (?, ?, ?, ?)",
+        (USER_ID, me["today"], quest_id, quest["reward"]),
+    )
+    conn.execute("UPDATE users SET gems = gems + ? WHERE id = ?", (quest["reward"], USER_ID))
+    return me_payload(conn, services.load_user(conn, USER_ID))
+
+
+@app.get("/api/units/{unit_id}/guidebook")
+def get_guidebook(unit_id: int, conn: Conn = Depends(db.get_db)):
+    return services.guidebook(conn, unit_id)
 
 
 @app.post("/api/hearts/refill")
@@ -222,6 +314,7 @@ def start_session(body: SessionIn, conn: Conn = Depends(db.get_db)):
         "hearts": user["hearts"],
         "time_limit": logic.TIMED_SECONDS if body.kind == "timed" else None,
         "exercises": [services.public_exercise(by_id[i]) for i in ids],
+        "glossary": GLOSSARY,
     }
 
 
@@ -292,15 +385,34 @@ def complete(session_id: int, conn: Conn = Depends(db.get_db)):
     hearts = min(logic.MAX_HEARTS, user["hearts"] + 1) if s["kind"] == "practice" else user["hearts"]
     today = db.today(conn)
     streak, extended = logic.next_streak(user["streak"], parse_day(user["last_streak_date"]), today)
-
-    conn.execute(
-        """UPDATE users SET xp = xp + ?, gems = gems + ?, hearts = ?, streak = ?,
-                  longest_streak = MAX(longest_streak, ?), last_streak_date = ? WHERE id = ?""",
-        (xp, gems, hearts, streak, streak, today.isoformat(), USER_ID),
-    )
     conn.execute(
         "UPDATE sessions SET completed_at = ?, completed_day = ?, xp_earned = ?, mistakes = ? WHERE id = ?",
         (db.now().isoformat(), today.isoformat(), xp, mistakes, session_id),
+    )
+
+    # Earn back: enough lessons inside the window restores the lost streak on top of the new one.
+    earned_back = False
+    if user["lost_streak"] and s["kind"] == "lesson":
+        done = conn.execute(
+            "SELECT COUNT(*) FROM sessions WHERE user_id = ? AND kind = 'lesson' AND completed_day >= ?",
+            (USER_ID, user["lost_streak_on"]),
+        ).fetchone()[0]
+        if done >= logic.EARN_BACK_LESSONS:
+            streak, earned_back = user["lost_streak"] + streak, True
+    freezes = user["streak_freezes"]
+    if extended:
+        freezes = logic.freezes_after_practice(streak, max(user["longest_streak"], streak), freezes)
+    freezes_in_streak = 0 if streak == 1 else user["freezes_in_streak"]
+
+    conn.execute(
+        """UPDATE users SET xp = xp + ?, gems = gems + ?, hearts = ?, streak = ?,
+                  longest_streak = MAX(longest_streak, ?), last_streak_date = ?,
+                  streak_freezes = ?, freezes_in_streak = ?,
+                  lost_streak = CASE WHEN ? THEN 0 ELSE lost_streak END,
+                  lost_streak_on = CASE WHEN ? THEN NULL ELSE lost_streak_on END
+           WHERE id = ?""",
+        (xp, gems, hearts, streak, streak, today.isoformat(), freezes, freezes_in_streak,
+         earned_back, earned_back, USER_ID),
     )
     unlocked = services.award_achievements(conn, USER_ID)
     total = len(attempts)
@@ -310,7 +422,10 @@ def complete(session_id: int, conn: Conn = Depends(db.get_db)):
         "mistakes": mistakes,
         "accuracy": round(100 * (total - mistakes) / total) if total else 100,
         "first_completion": first_completion,
-        "streak_extended": extended,
+        "streak_extended": extended or earned_back,
+        "streak_milestone": extended and streak in logic.STREAK_MILESTONES,
+        "earned_back": earned_back,
+        "freezes_gained": max(0, freezes - user["streak_freezes"]),
         "achievements": unlocked,
         "me": me_payload(conn, services.load_user(conn, USER_ID)),
     }

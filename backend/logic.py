@@ -83,3 +83,68 @@ def session_xp(kind: str, mistakes: int, correct: int = 0) -> int:
     if kind == "practice":
         return PRACTICE_XP
     return LESSON_XP + (PERFECT_BONUS if mistakes == 0 else 0)
+
+
+# ---------------------------------------------------------------- streak freezes and earn back
+
+MAX_FREEZES = 3
+FREEZE_UNLOCK_STREAK = 5  # first 5-day streak unlocks freezes; every 5-day milestone refills them
+FREEZE_COST = 200
+EARN_BACK_LESSONS = 3
+EARN_BACK_DAYS = 2
+STREAK_MILESTONES = (7, 30, 100, 365)
+
+
+def settle_missed_days(streak: int, last: date | None, today: date, freezes: int):
+    """Spend freezes on fully missed days since `last`.
+
+    Returns (streak, last, freezes, frozen_days, lost_streak). Frozen days keep the streak alive
+    without adding to it; if there aren't enough freezes the streak is lost (kept for earn back).
+    """
+    if streak == 0 or last is None or last >= today - timedelta(days=1):
+        return streak, last, freezes, [], 0
+    missed = (today - last).days - 1
+    if missed <= freezes:
+        days = [last + timedelta(days=i) for i in range(1, missed + 1)]
+        return streak, today - timedelta(days=1), freezes - missed, days, 0
+    return 0, last, freezes, [], streak
+
+
+def freezes_after_practice(new_streak: int, longest: int, freezes: int) -> int:
+    """Freeze inventory after the day's first lesson."""
+    if new_streak >= FREEZE_UNLOCK_STREAK and new_streak % FREEZE_UNLOCK_STREAK == 0:
+        return MAX_FREEZES
+    if longest >= FREEZE_UNLOCK_STREAK:
+        return min(MAX_FREEZES, freezes + 1)
+    return freezes
+
+
+# ---------------------------------------------------------------- leagues (Duolingo-style, 30 per group)
+
+LEAGUES = ["Bronze", "Silver", "Gold", "Sapphire", "Ruby", "Emerald", "Amethyst", "Pearl", "Obsidian", "Diamond"]
+PROMOTE = [20, 15, 10, 7, 7, 7, 7, 7, 5, 0]
+DEMOTE = [0, 5, 5, 5, 5, 5, 5, 5, 5, 5]
+LEAGUE_SIZE = 30
+TOP3_GEMS = 60
+
+
+def league_outcome(tier: int, rank: int, size: int, weekly_xp: int) -> tuple[int, str]:
+    if weekly_xp > 0 and rank <= PROMOTE[tier]:
+        return tier + 1, "promoted"
+    if DEMOTE[tier] and rank > size - DEMOTE[tier]:
+        return tier - 1, "demoted"
+    return tier, "stayed"
+
+
+# ---------------------------------------------------------------- spaced repetition
+
+# ponytail: hand-set weights; fit theta on the attempts log (logistic regression on recall) once there's real data.
+THETA = (0.0, 1.0, -1.0)  # bias, sqrt(correct), sqrt(wrong)
+
+
+def recall_probability(correct: int, wrong: int, days_since: float) -> float:
+    """Half-life regression (Settles & Meeder 2016): p = 2^(-delta/h), h = 2^(theta . x) in days."""
+    half_life = 2 ** (THETA[0] + THETA[1] * (1 + correct) ** 0.5 + THETA[2] * (1 + wrong) ** 0.5)
+    return 2 ** (-max(days_since, 0) / half_life)
+
+QUEST_GEMS = {"xp": 10, "lessons": 15, "perfect": 20}  # bronze / silver / gold chest

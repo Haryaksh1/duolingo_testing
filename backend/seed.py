@@ -11,7 +11,7 @@ from datetime import date, timedelta
 import db
 import logic
 import services
-from content import ACHIEVEMENTS, BOTS, COURSE, UNITS
+from content import ACHIEVEMENTS, BOT_NAMES, COURSE, UNITS
 
 LESSONS_PER_SKILL = 2
 LEARNER_ID = 1
@@ -140,10 +140,16 @@ def add_completed_session(conn, user_id, day: date, xp, kind="practice", lesson_
 
 
 def simulate_bots(conn, day: date, rng: random.Random) -> None:
-    """Bots practice on most days so the weekly leaderboard stays alive as the clock moves."""
+    """Bots practice on some days so the league stays alive as the clock moves.
+
+    Each bot has its own diligence (30-90% of days), and bots in higher leagues earn more,
+    so promotion gets harder as the learner climbs.
+    """
+    # ponytail: one shared cohort that scales with the learner's tier; real leagues regroup users weekly.
+    tier = conn.execute("SELECT league_tier FROM users WHERE id = ?", (LEARNER_ID,)).fetchone()[0]
     for (bot_id,) in conn.execute("SELECT id FROM users WHERE is_bot = 1").fetchall():
-        if rng.random() < 0.8:
-            xp = rng.choice([10, 15, 20, 25, 30, 40, 55])
+        if rng.random() < 0.3 + (bot_id % 7) / 10:
+            xp = round(rng.choice([10, 15, 20, 25, 30, 40, 55]) * (1 + 0.4 * tier))
             add_completed_session(conn, bot_id, day, xp)
             conn.execute("UPDATE users SET xp = xp + ? WHERE id = ?", (xp, bot_id))
 
@@ -153,9 +159,9 @@ def seed_users(conn, course_id, rng):
     stamp = db.now().isoformat()
     conn.execute(
         """INSERT INTO users (id, username, display_name, avatar, course_id, gems, hearts,
-                              hearts_updated_at, created_at)
-           VALUES (?, 'learner', 'Sam', '/mascot.svg', ?, 500, ?, ?, ?)""",
-        (LEARNER_ID, course_id, logic.MAX_HEARTS, stamp, stamp),
+                              hearts_updated_at, created_at, league_week)
+           VALUES (?, 'learner', 'Sam', '/mascot.svg', ?, 500, ?, ?, ?, ?)""",
+        (LEARNER_ID, course_id, logic.MAX_HEARTS, stamp, stamp, (today - timedelta(days=today.weekday())).isoformat()),
     )
     # Sample progress: three lessons over the last three days (one with a mistake).
     lessons = [r[0] for r in conn.execute("SELECT id FROM lessons ORDER BY skill_id, position LIMIT 3")]
@@ -177,11 +183,12 @@ def seed_users(conn, course_id, rng):
         (xp, (today - timedelta(days=1)).isoformat(), LEARNER_ID),
     )
 
-    for username, name, avatar in BOTS:
+    avatars = ["/girl.svg", "/boy.svg", "/woman.svg", "/man.svg", "/robot.svg", "/zombie.svg"]
+    for i, name in enumerate(BOT_NAMES):
         conn.execute(
             """INSERT INTO users (username, display_name, avatar, is_bot, course_id, xp, hearts_updated_at, created_at)
                VALUES (?, ?, ?, 1, ?, ?, ?, ?)""",
-            (username, name, avatar, course_id, rng.randint(200, 3000), stamp, stamp),
+            (f"bot{i}", name, avatars[i % len(avatars)], course_id, rng.randint(200, 3000), stamp, stamp),
         )
     week_start = today - timedelta(days=today.weekday())
     for d in range((today - week_start).days + 1):

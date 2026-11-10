@@ -205,14 +205,36 @@ ACHIEVEMENTS = [
     ("perfect_5", "Perfectionist", "Finish 5 lessons with no mistakes", "👑", "perfect", 5, 50),
 ]
 
-BOTS = [
-    ("maya", "Maya", "/girl.svg"),
-    ("leo", "Leo", "/boy.svg"),
-    ("priya", "Priya", "/woman.svg"),
-    ("kenji", "Kenji", "/man.svg"),
-    ("sofia", "Sofía", "/girl.svg"),
-    ("omar", "Omar", "/man.svg"),
-    ("zoe", "Zoe", "/woman.svg"),
-    ("robo", "RoboLingo", "/robot.svg"),
-    ("zed", "Zed", "/zombie.svg"),
+
+# Word-level hints shown when hovering a Spanish word in a lesson (Duolingo-style "hover hints").
+GLOSSARY = {
+    "a": "to / at", "abuela": "grandmother", "abuelo": "grandfather", "adiós": "goodbye", "agua": "water",
+    "al": "to the", "allí": "there", "alta": "tall", "aquí": "here", "autobús": "bus", "avión": "plane",
+    "ayer": "yesterday", "barco": "boat", "baño": "bathroom", "bebe": "drinks", "bebo": "I drink",
+    "bicicleta": "bicycle", "buenas": "good", "buenos": "good", "café": "coffee", "casa": "house",
+    "cerca": "near", "ciudad": "city", "coche": "car", "cocina": "cooks", "come": "eats",
+    "comemos": "we eat", "comer": "to eat", "corre": "runs", "correr": "to run", "cómo": "how",
+    "derecha": "right", "dormir": "to sleep", "dos": "two", "día": "day", "días": "days / morning",
+    "dónde": "where", "el": "the", "ella": "she", "en": "in / on", "es": "is", "escribir": "to write",
+    "escuela": "school", "está": "is (location)", "estás": "you are", "favor": "favour (por favor = please)",
+    "gato": "cat", "gira": "turn", "gracias": "thank you", "grande": "big", "hermana": "sister",
+    "hermano": "brother", "hermanos": "brothers / siblings", "hola": "hello", "hombre": "man",
+    "hora": "hour / time", "hotel": "hotel", "hoy": "today", "izquierda": "left", "juntos": "together",
+    "la": "the", "leche": "milk", "leer": "to read", "lejos": "far", "leo": "I read", "libro": "book",
+    "lunes": "Monday", "madre": "mother", "manzana": "apple", "mañana": "tomorrow", "mi": "my",
+    "mucho": "a lot", "mujer": "woman", "museo": "museum", "niña": "girl", "niño": "boy",
+    "noche": "night", "noches": "nights (buenas noches = good night)", "nosotros": "we", "padre": "father",
+    "pan": "bread", "pequeña": "small", "perro": "dog", "playa": "beach", "por": "for / by",
+    "queso": "cheese", "quiero": "I want", "qué": "what", "roja": "red", "rojo": "red",
+    "rápido": "fast", "sale": "leaves", "señor": "sir / mister", "soy": "I am", "sí": "yes",
+    "tengo": "I have", "tiene": "has", "tomo": "I take", "trabaja": "works", "trabajar": "to work",
+    "tren": "train", "un": "a", "vamos": "we go / let's go", "viejo": "old", "voy": "I go", "yo": "I",
+    "él": "he",
+}
+
+# Leaderboard cohort: you plus these practice learners (Duolingo leagues hold 30).
+BOT_NAMES = [
+    "Maya", "Leo", "Priya", "Kenji", "Sofía", "Omar", "Zoe", "Lucas", "Amara", "Diego", "Hana", "Arjun",
+    "Elena", "Noah", "Fatima", "Mateo", "Yuki", "Ines", "Kwame", "Lena", "Ravi", "Chloe", "Tomás", "Aisha",
+    "Felix", "Mei", "Jonas", "Nadia", "Ethan",
 ]
