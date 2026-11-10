@@ -76,6 +76,10 @@ const config = {
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
+        flicker: {
+          "0%,100%": { transform: "scale(1) rotate(0deg)", transformOrigin: "50% 90%" },
+          "50%": { transform: "scale(1.08) rotate(-3deg)", transformOrigin: "50% 90%" },
+        },
         pop: { "0%": { transform: "scale(0.9)" }, "60%": { transform: "scale(1.05)" }, "100%": { transform: "scale(1)" } },
         shake: { "0%,100%": { transform: "translateX(0)" }, "25%": { transform: "translateX(-6px)" }, "75%": { transform: "translateX(6px)" } },
         "slide-up": { from: { transform: "translateY(100%)" }, to: { transform: "translateY(0)" } },
@@ -90,6 +94,7 @@ const config = {
       },
       animation: {
         pop: "pop 0.25s ease-out",
+        flicker: "flicker 1.6s ease-in-out infinite",
         shake: "shake 0.4s ease-in-out",
         "slide-up": "slide-up 0.2s ease-out",
         "accordion-down": "accordion-down 0.2s ease-out",

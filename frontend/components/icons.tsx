@@ -1,10 +1,14 @@
 import { cn } from "@/lib/utils";
 
-type IconProps = { className?: string; muted?: boolean; perfect?: boolean };
+type IconProps = { className?: string; muted?: boolean; perfect?: boolean; glow?: boolean };
 
-/** Streak flame: grey when not extended today, gold for a perfect (freeze-free) streak. */
-export const FlameIcon = ({ className, muted, perfect }: IconProps) => (
-  <svg viewBox="0 0 24 24" className={cn("h-6 w-6", className)} aria-hidden>
+/** Streak flame: grey with no streak, gold for a perfect (freeze-free) streak, glowing once practised today. */
+export const FlameIcon = ({ className, muted, perfect, glow }: IconProps) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={cn("h-6 w-6", glow && !muted && "animate-flicker drop-shadow-[0_0_6px_rgba(255,150,0,0.8)]", className)}
+    aria-hidden
+  >
     <path
       d="M12 2c.6 3.2 4.5 5.4 5.8 8.6 1.6 4-1 9.4-5.8 9.4s-7.4-3.9-6.2-8c.5-1.8 1.6-3 2.6-3.8-.1 1.5.4 2.9 1.5 3.6C9.4 8.5 10.8 4.6 12 2Z"
       className={muted ? "fill-neutral-200" : perfect ? "fill-amber-400" : "fill-orange-400"}

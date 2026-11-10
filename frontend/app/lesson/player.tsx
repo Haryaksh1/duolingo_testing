@@ -361,8 +361,8 @@ export const LessonPlayer = ({
               style={{ position: "fixed", inset: 0, pointerEvents: "none" }}
             />
           )}
-          <FlameIcon
-            className="h-40 w-40 animate-pop"
+          <FlameIcon glow
+            className="h-40 w-40"
             perfect={result.me.perfect_streak}
           />
           <p className="text-8xl font-black text-orange-500">

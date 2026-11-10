@@ -6,45 +6,9 @@ import type { Me } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 import { HeartCountdown } from "./heart-countdown";
+import { Stat } from "./stat-popover";
 
 const DAYS = ["M", "T", "W", "T", "F", "S", "S"];
-
-/** Icon + number with a Duolingo-style hover/focus popover (pure CSS, no JS state). */
-const Stat = ({
-  label,
-  className,
-  children,
-  popover,
-}: {
-  label: string;
-  className: string;
-  children: React.ReactNode;
-  popover: React.ReactNode;
-}) => (
-  <div className="group relative">
-    <button
-      type="button"
-      aria-label={label}
-      className={cn(
-        "flex items-center gap-x-1.5 rounded-xl px-2 py-2 text-base font-extrabold transition hover:bg-neutral-100",
-        className
-      )}
-    >
-      {children}
-    </button>
-    {/* Mouse: open on hover only (a click can't pin it open). Touch: open on tap. Keyboard: open on Tab focus. */}
-    <div
-      className={cn(
-        "invisible absolute right-0 top-full z-50 w-[300px] pt-2 opacity-0 transition max-lg:fixed max-lg:inset-x-2 max-lg:top-[60px] max-lg:w-auto",
-        "[@media(hover:hover)]:group-hover:visible [@media(hover:hover)]:group-hover:opacity-100",
-        "[@media(hover:none)]:group-focus-within:visible [@media(hover:none)]:group-focus-within:opacity-100",
-        "group-has-[:focus-visible]:visible group-has-[:focus-visible]:opacity-100"
-      )}
-    >
-      <div className="rounded-2xl border-2 bg-background p-4 shadow-lg">{popover}</div>
-    </div>
-  </div>
-);
 
 /** This week, Monday to Sunday: practised days burn, frozen days show a snowflake. */
 const StreakWeek = ({ me }: { me: Me }) => (
@@ -91,7 +55,7 @@ export const UserProgress = ({ me }: { me: Me }) => (
 
     <Stat
       label={`${me.streak} day streak`}
-      className={me.streak_extended_today ? "text-orange-500" : "text-neutral-400"}
+      className={me.streak > 0 ? "text-orange-500" : "text-neutral-400"}
       popover={
         <>
           <p className="text-lg font-extrabold">
@@ -108,7 +72,7 @@ export const UserProgress = ({ me }: { me: Me }) => (
         </>
       }
     >
-      <FlameIcon muted={!me.streak_extended_today} perfect={me.streak_extended_today && me.perfect_streak} />
+      <FlameIcon muted={me.streak === 0} glow={me.streak_extended_today} perfect={me.perfect_streak && me.streak >= 2} />
       {me.streak}
     </Stat>
 

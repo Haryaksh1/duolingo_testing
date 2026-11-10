@@ -12,7 +12,7 @@ const ProfilePage = async () => {
   const p = await api.profile();
   const peak = Math.max(...p.history.map((h) => h.xp), 1);
   const stats = [
-    { icon: <FlameIcon className="h-7 w-7" />, value: p.me.streak, label: "Day streak" },
+    { icon: <FlameIcon className="h-7 w-7" muted={p.me.streak === 0} glow={p.me.streak_extended_today} />, value: p.me.streak, label: "Day streak" },
     { icon: "⚡", value: p.stats.xp, label: "Total XP" },
     { icon: "📘", value: p.stats.lessons, label: "Lessons" },
     { icon: "💎", value: p.stats.perfect, label: "Perfect lessons" },
