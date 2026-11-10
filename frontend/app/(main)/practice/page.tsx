@@ -9,11 +9,11 @@ const PracticeHub = async () => {
     {
       href: "/lesson/review",
       icon: "💪",
-      title: "Review mistakes",
+      title: "Review",
       text:
         stats.to_review > 0
-          ? `${stats.to_review} exercise${stats.to_review === 1 ? "" : "s"} you've missed, mixed with ones you know. Earns back a heart.`
-          : "Mix of exercises from lessons you've finished. Earns back a heart.",
+          ? `${stats.to_review} exercise${stats.to_review === 1 ? " is" : "s are"} due for review: the ones you're most likely to have forgotten. Earns back a heart.`
+          : "Nothing is due yet, so you'll get a mix from lessons you've finished. Earns back a heart.",
       color: "border-sky-300 bg-sky-100 text-sky-700 dark:text-sky-300",
     },
     {

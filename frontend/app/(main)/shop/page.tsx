@@ -4,7 +4,11 @@ import { api } from "@/lib/api";
 
 import { BuyButton } from "./buy-button";
 
-const Item = ({ icon, title, text, children }: { icon: React.ReactNode; title: string; text: string; children: React.ReactNode }) => (
+const Section = ({ title }: { title: string }) => (
+  <h2 className="pt-2 text-xl font-extrabold">{title}</h2>
+);
+
+const Item = ({ icon, title, text, children }: { icon: React.ReactNode; title: string; text: string; children?: React.ReactNode }) => (
   <div className="flex items-center gap-x-4 rounded-2xl border-2 p-4">
     <div className="flex h-14 w-14 shrink-0 items-center justify-center text-4xl">{icon}</div>
     <div className="min-w-0 flex-1">
@@ -24,6 +28,7 @@ const ShopPage = async () => {
         <span className="font-extrabold text-sky-400">💎 {me.gems}</span>
       </div>
 
+      <Section title="Hearts" />
       <Item
         icon={<Image src="/heart.svg" alt="" height={56} width={56} />}
         title="Refill hearts"
@@ -32,6 +37,7 @@ const ShopPage = async () => {
         <BuyButton item="refill" cost={me.refill_cost} disabled={me.hearts >= me.max_hearts || me.gems < me.refill_cost} />
       </Item>
 
+      <Section title="Power-ups" />
       <Item
         icon="❄️"
         title="Streak Freeze"
@@ -45,9 +51,11 @@ const ShopPage = async () => {
       </Item>
 
       <div className="opacity-60">
-        <Item icon={<Image src="/unlimited.svg" alt="" height={56} width={56} />} title="Unlimited hearts" text="Part of Super.">
-          <span className="shrink-0 text-sm font-bold uppercase text-neutral-500">Coming soon</span>
-        </Item>
+        <Item
+          icon={<Image src="/unlimited.svg" alt="" height={56} width={56} />}
+          title="Unlimited hearts"
+          text="Part of Super · coming soon"
+        />
       </div>
     </div>
   );

@@ -58,10 +58,16 @@ const LeaderboardPage = async () => {
                 r.is_me && "bg-sky-100"
               )}
             >
-              <span className={cn("w-7 text-center font-extrabold", r.rank <= 3 ? "text-xl" : "text-neutral-500")}>
+              <span className={cn("w-7 text-center font-extrabold", r.rank <= 3 ? "text-2xl" : "text-neutral-500")}>
                 {r.rank <= 3 ? MEDAL[r.rank - 1] : r.rank}
               </span>
-              <Image src={r.avatar} alt="" width={44} height={44} className="rounded-full border-2 bg-white" />
+              <Image
+                src={r.avatar}
+                alt=""
+                width={44}
+                height={44}
+                className="h-11 w-11 shrink-0 rounded-full border-2 bg-white object-contain p-0.5"
+              />
               <span className={cn("flex-1 truncate font-bold", r.is_me && "text-sky-500")}>{r.display_name}</span>
               <span className="shrink-0 font-bold text-neutral-500">{r.weekly_xp} XP</span>
             </div>

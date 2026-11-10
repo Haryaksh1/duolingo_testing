@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from "react";
 
 import { BottomNav, MobileHeader } from "@/components/mobile-header";
+import { HideOn } from "@/components/hide-on";
 import { DailyGoal, Quests } from "@/components/quests";
 import { ServerDown } from "@/components/server-down";
 import { Sidebar } from "@/components/sidebar";
@@ -23,7 +24,9 @@ const MainLayout = async ({ children }: PropsWithChildren) => {
           <StickyWrapper>
             <UserProgress me={me} />
             <DailyGoal me={me} />
-            <Quests me={me} />
+            <HideOn path="/quests">
+              <Quests me={me} />
+            </HideOn>
           </StickyWrapper>
           <div className="relative min-w-0 flex-1 pb-10">{children}</div>
         </div>

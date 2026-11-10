@@ -21,7 +21,7 @@ const ProfilePage = async () => {
   return (
     <div className="mx-auto max-w-[600px] space-y-8">
       <div className="flex items-center gap-x-5 border-b-2 pb-6">
-        <Image src={p.me.avatar} alt="" width={96} height={96} className="rounded-full border-2 bg-sky-100 p-2" />
+        <Image src={p.me.avatar} alt="" width={96} height={96} className="h-24 w-24 shrink-0 rounded-full border-2 bg-sky-100 object-contain p-2" />
         <div>
           <h1 className="text-3xl font-extrabold">{p.me.display_name}</h1>
           <p className="text-neutral-500">
