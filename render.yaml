@@ -1,0 +1,16 @@
+# Render blueprint for the API. The frontend deploys to Vercel (root directory: frontend).
+services:
+  - type: web
+    name: lingo-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      # Set to the Vercel URL after the frontend is deployed, e.g. https://lingo-xyz.vercel.app
+      - key: CORS_ORIGINS
+        value: "*"

@@ -1,0 +1,59 @@
+{
+  "name": "lingo-frontend",
+  "version": "1.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write ."
+  },
+  "dependencies": {
+    "@radix-ui/react-avatar": "^1.3.1",
+    "@radix-ui/react-dialog": "^1.3.0",
+    "@radix-ui/react-progress": "^1.2.1",
+    "@radix-ui/react-separator": "^1.2.0",
+    "@radix-ui/react-slot": "^1.5.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.0",
+    "lucide-react": "^1.52.0",
+    "next": "^16.4.3",
+    "react": "^19.3.0",
+    "react-circular-progressbar": "^2.2.0",
+    "react-confetti": "^6.4.0",
+    "react-dom": "^19.3.0",
+    "react-use": "^17.6.1",
+    "sonner": "^2.0.8",
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss-animate": "^1.0.7",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "autoprefixer": "^10.6.1",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.6",
+    "eslint-config-prettier": "^10.1.8",
+    "postcss": "^8",
+    "prettier": "^3.9.10",
+    "prettier-plugin-tailwindcss": "^0.8.0",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^6"
+  },
+  "author": {
+    "name": "Sanidhya Kumar Verma",
+    "email": "sanidhyyy@gmail.com",
+    "url": "https://github.com/sanidhyy"
+  },
+  "description": "Duolingo-style language learning app (frontend)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sanidhyy/duolingo-clone.git"
+  }
+}
