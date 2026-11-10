@@ -85,9 +85,13 @@ export const LearningPath = ({ units }: { units: Unit[] }) => {
               width={110}
               height={110}
               className={cn(
-                // only where the column is wide enough to keep it clear of the nodes
-                "pointer-events-none absolute top-1/2 hidden -translate-y-1/2 md:block lg:hidden xl:block",
-                unit.position % 2 ? "left-1/2 ml-24" : "right-1/2 mr-24"
+                // Sits in the hollow of the curve. Small where the column is narrow (phones, and
+                // laptops with sidebar + rail), full size where there's room (tablets, wide screens).
+                "pointer-events-none absolute top-1/2 h-20 w-20 -translate-y-1/2 object-contain",
+                "md:h-[110px] md:w-[110px] lg:h-20 lg:w-20 xl:h-[110px] xl:w-[110px]",
+                unit.position % 2
+                  ? "left-1/2 ml-16 md:ml-24 lg:ml-16 xl:ml-24"
+                  : "right-1/2 mr-16 md:mr-24 lg:mr-16 xl:mr-24"
               )}
             />
           </div>
