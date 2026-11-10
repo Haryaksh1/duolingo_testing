@@ -32,7 +32,15 @@ const Stat = ({
     >
       {children}
     </button>
-    <div className="invisible absolute right-0 top-full z-50 w-[300px] pt-2 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100 max-lg:fixed max-lg:inset-x-2 max-lg:top-[60px] max-lg:w-auto">
+    {/* Mouse: open on hover only (a click can't pin it open). Touch: open on tap. Keyboard: open on Tab focus. */}
+    <div
+      className={cn(
+        "invisible absolute right-0 top-full z-50 w-[300px] pt-2 opacity-0 transition max-lg:fixed max-lg:inset-x-2 max-lg:top-[60px] max-lg:w-auto",
+        "[@media(hover:hover)]:group-hover:visible [@media(hover:hover)]:group-hover:opacity-100",
+        "[@media(hover:none)]:group-focus-within:visible [@media(hover:none)]:group-focus-within:opacity-100",
+        "group-has-[:focus-visible]:visible group-has-[:focus-visible]:opacity-100"
+      )}
+    >
       <div className="rounded-2xl border-2 bg-background p-4 shadow-lg">{popover}</div>
     </div>
   </div>
