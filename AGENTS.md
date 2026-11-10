@@ -13,5 +13,6 @@ Read `README.md` first (architecture, schema, API).
 - Gotchas found while testing:
   - React's event root is `document` in the App Router, so `stopPropagation` can't shield a
     `document` listener (see `learning-path.tsx`).
-  - Key `LessonPlayer` by its target. Client navigation otherwise reuses the instance and its state.
+  - Key `LessonPlayer` by its target (lesson id / "review" / "timed"). Client navigation otherwise reuses the instance and its state.
+  - Sticky elements create stacking contexts: the stats rail needs its own z-index for popovers to sit above path banners.
   - The lesson `Footer` swallows Enter's default action and ignores Enter for 400ms after mounting.

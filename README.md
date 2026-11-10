@@ -55,13 +55,22 @@ Environment variables (all optional):
   (lose one per wrong answer, regenerate one every 30 minutes, refill for 350 gems, +1 per practice),
   gems, daily goal (10/20/30/50 XP), three daily quests, nine achievements with gem rewards, weekly
   Bronze league against seeded learners.
-- **Practice** — builds a session from the exercises you miss most (net misses > corrects), topped
-  up with exercises from completed lessons. Works with zero hearts and earns one back.
+- **Practice Hub** with two modes:
+  - *Review mistakes* builds a session from the exercises you miss most (net misses > corrects),
+    topped up with exercises from completed lessons. Works with zero hearts and earns one back.
+  - *Timed challenge* gives 90 seconds to answer as many as you can, at 1 XP per correct answer,
+    with no hearts lost. The time limit is enforced by the server (answers after the deadline are refused).
+- **Top-bar popovers** (hover on desktop, tap on mobile): streak with this week's active days, gems,
+  and hearts with a live "next heart in mm:ss" countdown plus refill / practice shortcuts.
+- **Dark mode**: System / Light / Dark in Settings, remembered per browser and applied before first paint.
 - **Profile** — stats, a 7-day XP chart, achievements with progress, "exercises to review".
 - **Settings** — display name, daily goal, course list (other languages "Coming soon"), and testing
   tools: *Simulate next day* (moves the app clock to check streak and daily-goal logic) and
   *Reset progress*.
 - Responsive: sidebar + stats rail on desktop; top stats bar + bottom tab bar on mobile.
+
+Dark mode works by pointing Tailwind's neutral, slate and tint shades at CSS variables
+(`globals.css`) that `.dark` redefines, so every existing class themes itself.
 
 ## Architecture
 
@@ -69,7 +78,8 @@ Environment variables (all optional):
 frontend/  Next.js
   app/(main)/          pages with sidebar + stats rail (learn, leaderboard, quests, shop, profile, settings)
   app/lesson/          lesson player: player.tsx (state machine), exercises.tsx (one component per type)
-  app/practice/        practice session (same player)
+  app/lesson/review/   mistakes review   app/lesson/timed/  timed challenge   (same player, `mode` prop)
+  app/(main)/practice/ practice hub
   components/          shared UI (sidebar, stats bar, quests, icons, shadcn/ui primitives)
   lib/api.ts           typed API client (the only place that talks to the backend)
 backend/   FastAPI
@@ -111,7 +121,7 @@ app_clock (single row: day offset for simulated dates)
 | `lessons` | `skill_id`, `position` |
 | `exercises` | `lesson_id`, `position`, `type` (CHECK in 6 types), `prompt`, `payload` (JSON, CHECK `json_valid`) holding type-specific data incl. the answer |
 | `users` | learner and leaderboard bots: `xp`, `gems`, `hearts` (CHECK 0–5), `hearts_updated_at`, `streak`, `longest_streak`, `last_streak_date`, `daily_goal` (CHECK in 10/20/30/50) |
-| `sessions` | one lesson or practice run: `kind`, `lesson_id` (NULL for practice), `exercise_ids`, `completed_at`, `completed_day`, `xp_earned`, `mistakes` |
+| `sessions` | one lesson, practice or timed run: `kind`, `lesson_id` (NULL unless a lesson), `exercise_ids`, `completed_at`, `completed_day`, `xp_earned`, `mistakes` |
 | `attempts` | every graded answer: `session_id`, `exercise_id`, `correct`, `answer` |
 | `achievements` | `code`, `metric` (xp / streak / lessons / perfect), `threshold`, `reward_gems` |
 | `user_achievements` | PK `(user_id, achievement_id)`, `unlocked_at` |
@@ -135,8 +145,8 @@ Design choices:
 | `GET /api/me` | learner stats, hearts (after regen), streak, daily XP, quests |
 | `PATCH /api/me` | update `display_name`, `daily_goal` |
 | `GET /api/path` | units → skills with state and progress |
-| `POST /api/sessions` | start `{kind: "lesson", lesson_id}` or `{kind: "practice"}`; 403 if locked, 409 if out of hearts |
-| `POST /api/sessions/{id}/answer` | grade `{exercise_id, answer}` → `{correct, solution, hearts, out_of_hearts}` |
+| `POST /api/sessions` | start `{kind: "lesson", lesson_id}`, `{kind: "practice"}` or `{kind: "timed"}`; 403 if locked, 409 if out of hearts |
+| `POST /api/sessions/{id}/answer` | grade `{exercise_id, answer}` → `{correct, solution, hearts, out_of_hearts}`; 409 `time_up` after a timed run's deadline |
 | `POST /api/sessions/{id}/complete` | award XP, gems, streak, achievements |
 | `GET /api/profile` | stats, achievements with progress, 7-day history |
 | `GET /api/leaderboard` | this week's league ranking |
