@@ -46,14 +46,13 @@
     "typescript": "^6"
   },
   "author": {
-    "name": "Sanidhya Kumar Verma",
-    "email": "sanidhyyy@gmail.com",
-    "url": "https://github.com/sanidhyy"
+    "name": "Haryaksh1",
+    "url": "https://github.com/Haryaksh1"
   },
   "description": "Duolingo-style language learning app (frontend)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sanidhyy/duolingo-clone.git"
+    "url": "https://github.com/Haryaksh1/duolingo_testing.git"
   }
 }
