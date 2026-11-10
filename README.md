@@ -216,7 +216,7 @@ Features beyond the brief come from Duolingo's own published findings, not guess
 
 ## License
 
-Copyright © 2026 Haryaksh1. All rights reserved. This project was built as an assignment submission;
+Copyright © 2026 [@Haryaksh1](https://github.com/Haryaksh1). All rights reserved. This project was built as an assignment submission;
 no permission is granted to copy, modify, or reuse its code, in whole or in part. The starter files
 listed under Credits remain under their original MIT license.
 
