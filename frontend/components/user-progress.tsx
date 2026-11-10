@@ -26,7 +26,7 @@ const Stat = ({
       type="button"
       aria-label={label}
       className={cn(
-        "flex items-center gap-x-2 rounded-xl px-3 py-2 text-base font-extrabold transition hover:bg-neutral-100",
+        "flex items-center gap-x-1.5 rounded-xl px-2 py-2 text-base font-extrabold transition hover:bg-neutral-100",
         className
       )}
     >
@@ -62,7 +62,7 @@ const StreakWeek = ({ me }: { me: Me }) => {
 
 export const UserProgress = ({ me }: { me: Me }) => (
   <div className="flex w-full items-center justify-between gap-x-1">
-    <Link href="/settings" title={me.course.title} className="rounded-xl px-3 py-2 transition hover:bg-neutral-100">
+    <Link href="/settings" title={me.course.title} className="shrink-0 rounded-xl px-2 py-2 transition hover:bg-neutral-100">
       <Image src={me.course.flag} alt={me.course.title} className="rounded-md" width={32} height={24} />
     </Link>
 
@@ -83,6 +83,28 @@ export const UserProgress = ({ me }: { me: Me }) => (
     >
       <FlameIcon muted={!me.streak_extended_today} />
       {me.streak}
+    </Stat>
+
+    <Stat
+      label={`${me.xp} total XP`}
+      className="text-amber-500"
+      popover={
+        <div className="flex items-center gap-x-4">
+          <Image src="/points.svg" alt="" width={56} height={56} className="shrink-0" />
+          <div className="space-y-2">
+            <p className="text-lg font-extrabold">{me.xp} total XP</p>
+            <p className="text-sm text-neutral-500">
+              {me.daily_xp} / {me.daily_goal} XP toward today&apos;s goal.
+            </p>
+            <Link href="/leaderboard" className="text-sm font-extrabold uppercase text-sky-400 hover:text-sky-500">
+              View leaderboard
+            </Link>
+          </div>
+        </div>
+      }
+    >
+      <Image src="/points.svg" height={24} width={24} alt="" />
+      {me.xp}
     </Stat>
 
     <Stat
