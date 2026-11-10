@@ -46,7 +46,7 @@ const ShopPage = async () => {
 
       <div className="opacity-60">
         <Item icon={<Image src="/unlimited.svg" alt="" height={56} width={56} />} title="Unlimited hearts" text="Part of Super.">
-          <span className="shrink-0 text-sm font-bold uppercase text-neutral-400">Coming soon</span>
+          <span className="shrink-0 text-sm font-bold uppercase text-neutral-500">Coming soon</span>
         </Item>
       </div>
     </div>

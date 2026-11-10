@@ -27,7 +27,7 @@ const GuidebookPage = async ({ params }: { params: Promise<{ unitId: string }> }
 
   return (
     <div className="mx-auto max-w-[600px] space-y-6">
-      <Link href="/learn" className="inline-flex items-center gap-x-2 font-extrabold uppercase text-neutral-400">
+      <Link href="/learn" className="inline-flex items-center gap-x-2 font-extrabold uppercase text-neutral-500 hover:text-neutral-700">
         <ArrowLeft className="h-5 w-5" /> Back
       </Link>
       <div className={cn("rounded-2xl p-5 text-white", BANNER[book.color])}>

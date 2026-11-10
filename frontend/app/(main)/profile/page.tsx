@@ -51,7 +51,7 @@ const ProfilePage = async () => {
         <div className="flex h-40 items-end gap-x-2 rounded-2xl border-2 p-4">
           {p.history.map((h) => (
             <div key={h.day} className="flex flex-1 flex-col items-center gap-y-1">
-              <span className="text-xs font-bold text-neutral-400">{h.xp || ""}</span>
+              <span className="text-xs font-bold text-neutral-500">{h.xp || ""}</span>
               <div
                 className={cn("w-full rounded-t-lg", h.day === p.me.today ? "bg-orange-400" : "bg-amber-400")}
                 style={{ height: `${(h.xp / peak) * 80}px`, minHeight: 4 }}
@@ -81,7 +81,7 @@ const ProfilePage = async () => {
               <div className="flex-1 space-y-2">
                 <div className="flex justify-between">
                   <p className="font-extrabold">{a.title}</p>
-                  <p className="text-sm font-bold text-neutral-400">
+                  <p className="text-sm font-bold text-neutral-500">
                     {a.progress}/{a.threshold}
                   </p>
                 </div>

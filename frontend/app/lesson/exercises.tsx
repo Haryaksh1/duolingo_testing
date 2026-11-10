@@ -144,7 +144,7 @@ export const SelectExercise = ({ exercise, draft, setDraft, status }: Props<"sel
 
 export const FillExercise = ({ exercise, draft, setDraft, status }: Props<"fill">) => (
   <div className="space-y-8">
-    <p className="text-sm font-bold text-neutral-400">“{exercise.translation}”</p>
+    <p className="text-sm font-bold text-neutral-500">“{exercise.translation}”</p>
     <p className="flex flex-wrap items-end gap-x-2 gap-y-3 text-2xl font-bold">
       <HintText text={exercise.before} />
       <span

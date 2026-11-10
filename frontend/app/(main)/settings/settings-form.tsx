@@ -153,7 +153,7 @@ export const SettingsForm = ({ me }: { me: Me }) => {
           <div key={c.name} className="flex items-center gap-x-3 rounded-2xl border-2 p-3 opacity-60">
             <Image src={c.flag} alt="" width={40} height={30} className="rounded" />
             <span className="flex-1 font-bold">{c.name}</span>
-            <span className="text-sm font-bold uppercase text-neutral-400">Coming soon</span>
+            <span className="text-sm font-bold uppercase text-neutral-500">Coming soon</span>
           </div>
         ))}
       </section>

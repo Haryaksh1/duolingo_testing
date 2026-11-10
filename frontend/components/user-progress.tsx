@@ -43,7 +43,7 @@ const StreakWeek = ({ me }: { me: Me }) => (
   <div className="mt-3 flex justify-between rounded-xl bg-neutral-50 p-3">
     {me.week.map(({ day, status }, i) => (
       <div key={day} className="flex flex-col items-center gap-y-1" title={`${day}: ${status}`}>
-        <span className={cn("text-xs font-extrabold", status === "today" ? "text-orange-500" : "text-neutral-400")}>
+        <span className={cn("text-xs font-extrabold", status === "today" ? "text-orange-500" : "text-neutral-500")}>
           {DAYS[i]}
         </span>
         {status === "frozen" ? (

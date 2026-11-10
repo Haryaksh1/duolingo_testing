@@ -56,11 +56,25 @@ Environment variables (all optional):
   lesson-complete screen (XP, accuracy, gems, achievements, confetti) and a streak screen.
 - **Gamification** — XP (10 per lesson, +5 for a perfect lesson, 5 per practice), streaks, hearts
   (lose one per wrong answer, regenerate one every 30 minutes, refill for 350 gems, +1 per practice),
-  gems, daily goal (10/20/30/50 XP), three daily quests, nine achievements with gem rewards, weekly
-  Bronze league against seeded learners.
+  gems, daily goal (10/20/30/50 XP), nine achievements with gem rewards.
+- **Leagues** — 10 tiers (Bronze → Diamond), 30 learners per league, weekly reset. Promotion and
+  demotion follow Duolingo's sizes (Bronze: top 20 move up; bottom 5 drop from Silver upward), shown as
+  green / red zone lines; top 3 win 60 gems; an end-of-week popup shows the result. Higher leagues
+  have stronger (seeded) competition.
+- **Streak freezes** — unlocked at the first 5-day streak (3 freezes), refilled at every 5-day
+  milestone, +1 for each day you practise, buyable in the shop (200 gems, max 3). They are spent
+  automatically on missed days, which show as ❄️ on the streak calendar.
+- **Earn back** — a lost streak can be restored by finishing 3 lessons within 2 days.
+- **Streak polish** — milestone celebrations (7 / 30 / 100 / 365), gold "perfect streak" flame when
+  no freeze was used, an evening "streak at risk" banner on the Learn page.
+- **Daily quests with chests** — three quests per day; finishing one unlocks a chest worth 10 / 15 / 20 gems.
+- **Guidebook** — each unit's key phrases and words with audio, from the button on the unit banner.
+- **Word hints** — hover (or tap) a Spanish word in a lesson to see its meaning.
 - **Practice Hub** with two modes:
-  - *Review mistakes* builds a session from the exercises you miss most (net misses > corrects),
-    topped up with exercises from completed lessons. Works with zero hearts and earns one back.
+  - *Review* picks the exercises you're most likely to have forgotten, using half-life regression
+    (Duolingo's published model: recall = 2^(−days since practice / half-life), where the half-life grows
+    with correct answers and shrinks with mistakes), topped up with exercises from completed lessons.
+    Works with zero hearts and earns one back.
   - *Timed challenge* gives 90 seconds to answer as many as you can, at 1 XP per correct answer,
     with no hearts lost. The time limit is enforced by the server (answers after the deadline are refused).
 - **Top-bar popovers** (hover on desktop, tap on mobile): streak with this week's active days, gems,
@@ -82,17 +96,18 @@ frontend/  Next.js
   app/(main)/          pages with sidebar + stats rail (learn, leaderboard, quests, shop, profile, settings)
   app/lesson/          lesson player: player.tsx (state machine), exercises.tsx (one component per type)
   app/lesson/review/   mistakes review   app/lesson/timed/  timed challenge   (same player, `mode` prop)
-  app/(main)/practice/ practice hub
+  app/(main)/practice/ practice hub        app/(main)/guidebook/[unitId]/  unit guidebook
   components/          shared UI (sidebar, stats bar, quests, icons, shadcn/ui primitives)
   lib/api.ts           typed API client (the only place that talks to the backend)
 backend/   FastAPI
   main.py              HTTP routes and request validation
-  services.py          game state that needs the DB: heart regen on read, path unlocking, stats, achievements
-  logic.py             pure rules: grading, answer normalisation, hearts, streaks, XP
+  services.py          game state that needs the DB: loading the learner (hearts, freezes, league week
+                       settled on read), path unlocking, review selection, stats, achievements, guidebook
+  logic.py             pure rules: grading, normalisation, hearts, streaks + freezes, leagues, XP, recall
   db.py                connection per request (one transaction), simulated clock
   schema.sql           tables, constraints, indexes
   content.py, seed.py  Spanish course data → generated exercises, sample learner, leaderboard bots
-  test_api.py          rule checks + an end-to-end lesson-loop test
+  test_api.py          rule checks, the lesson loop end to end, and the retention features end to end
 ```
 
 Pages are React Server Components that fetch from the API on each request (`no-store`); interactive
@@ -113,6 +128,7 @@ Free-text answers are normalised before comparison (case, accents, punctuation, 
 courses 1─* units 1─* skills 1─* lessons 1─* exercises
 users 1─* sessions 1─* attempts *─1 exercises
 users *─* achievements   (via user_achievements)
+users 1─* streak_freeze_days, quest_claims, league_results
 app_clock (single row: day offset for simulated dates)
 ```
 
@@ -123,17 +139,21 @@ app_clock (single row: day offset for simulated dates)
 | `skills` | a node on the path; `unit_id`, `position`, `title`, `icon` |
 | `lessons` | `skill_id`, `position` |
 | `exercises` | `lesson_id`, `position`, `type` (CHECK in 6 types), `prompt`, `payload` (JSON, CHECK `json_valid`) holding type-specific data incl. the answer |
-| `users` | learner and leaderboard bots: `xp`, `gems`, `hearts` (CHECK 0–5), `hearts_updated_at`, `streak`, `longest_streak`, `last_streak_date`, `daily_goal` (CHECK in 10/20/30/50) |
+| `users` | learner and leaderboard bots: `xp`, `gems`, `hearts` (CHECK 0–5), `hearts_updated_at`, `streak`, `longest_streak`, `last_streak_date`, `streak_freezes` (CHECK 0–3), `freezes_in_streak` (0 = perfect), `lost_streak` + `lost_streak_on` (earn back), `league_tier` (CHECK 0–9), `league_week`, `daily_goal` (CHECK in 10/20/30/50) |
 | `sessions` | one lesson, practice or timed run: `kind`, `lesson_id` (NULL unless a lesson), `exercise_ids`, `completed_at`, `completed_day`, `xp_earned`, `mistakes` |
 | `attempts` | every graded answer: `session_id`, `exercise_id`, `correct`, `answer` |
 | `achievements` | `code`, `metric` (xp / streak / lessons / perfect), `threshold`, `reward_gems` |
 | `user_achievements` | PK `(user_id, achievement_id)`, `unlocked_at` |
+| `streak_freeze_days` | days a freeze covered, PK `(user_id, day)`, for the ❄️ calendar |
+| `quest_claims` | opened chests, PK `(user_id, day, quest_id)` so each opens once a day |
+| `league_results` | one row per finished week: rank, old/new tier, result, prize, `seen` (drives the popup) |
 
 Design choices:
 - **Completed sessions are the XP ledger.** Daily goal, quests, the weekly leaderboard, the profile
   chart and lesson completion are all queries over `sessions` — there's no duplicated counter to drift.
-- **Hearts regenerate lazily**: stored as `(hearts, hearts_updated_at)` and topped up whenever the user
-  is loaded, so no background job is needed.
+- **Time-based state settles lazily** when the learner is loaded: heart regeneration, streak freezes
+  for missed days (or losing the streak), and closing any finished league week. No cron job needed,
+  and the "Simulate next day" tool exercises exactly the same code path.
 - **Unlocking is derived**: a skill unlocks when every lesson in the previous skill has a completed
   session. Nothing to keep in sync.
 - **Exercise payloads are JSON** because each type has a different shape; the type column plus a
@@ -152,7 +172,11 @@ Design choices:
 | `POST /api/sessions/{id}/answer` | grade `{exercise_id, answer}` → `{correct, solution, hearts, out_of_hearts}`; 409 `time_up` after a timed run's deadline |
 | `POST /api/sessions/{id}/complete` | award XP, gems, streak, achievements |
 | `GET /api/profile` | stats, achievements with progress, 7-day history |
-| `GET /api/leaderboard` | this week's league ranking |
+| `GET /api/leaderboard` | current league, promotion/demotion sizes, ranking, unseen last-week result |
+| `POST /api/leaderboard/seen` | dismiss the end-of-week result |
+| `POST /api/quests/{id}/claim` | open a finished quest's chest (409 if already opened) |
+| `POST /api/shop/freeze` | buy a streak freeze |
+| `GET /api/units/{id}/guidebook` | a unit's key words and phrases |
 | `POST /api/hearts/refill` | spend gems for full hearts |
 | `POST /api/dev/advance-day` | move the simulated clock one day forward |
 | `POST /api/dev/reset` | rebuild and reseed the database |
@@ -172,10 +196,23 @@ Interactive docs: `http://localhost:8000/docs`.
 - Course content is small and seeded: Spanish for English speakers, 9 skills × 2 lessons × 8 exercises.
   Exercises are generated deterministically from per-skill vocabulary and sentences in `content.py`.
 - Audio uses the browser's speech synthesis (no audio files needed); it's silent where unsupported.
-- The leaderboard is a single Bronze league with nine seeded learners who "practise" on each simulated
-  day. No promotion between leagues.
+- Leagues: the other 29 learners are seeded bots who practise on most simulated days (more in higher
+  leagues). Real Duolingo reshuffles leagues weekly; here the same bots move with you.
 - The streak/day logic uses a simulated date (real date + offset), so it can be demoed without waiting.
 - Gems are a mock currency; Super, speaking exercises, friends and other languages are "Coming soon".
+
+## Product research behind the features
+
+Features beyond the brief come from Duolingo's own published findings, not guesswork:
+
+| Feature | Source finding |
+|---|---|
+| Leagues with promotion | Jorge Mazal (ex-Duolingo product lead): leagues raised learning time +17% and tripled highly engaged learners |
+| Streak freezes | Duolingo blog: allowing equipped freezes raised daily active learners; loss aversion starts around a 7-day streak |
+| Earn back, streak saver | Duolingo retention PM (Lenny's podcast): restore lost streaks with lessons, nudge late in the day |
+| Milestones, perfect streak | Duolingo blog: milestone animations raised 7-day retention +1.7% |
+| Review by predicted recall | Duolingo research (Settles & Meeder 2016): half-life regression, +12% activity |
+| Hearts, not energy | Duolingo started replacing hearts with energy on iOS in 2025; kept hearts because the brief requires them |
 
 ## Credits
 

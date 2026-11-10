@@ -69,7 +69,7 @@ export const LearningPath = ({ units }: { units: Unit[] }) => {
           </div>
         </section>
       ))}
-      <div className="flex flex-col items-center gap-y-2 pb-10 text-center text-neutral-400">
+      <div className="flex flex-col items-center gap-y-2 pb-10 text-center text-neutral-500">
         <span className="text-5xl grayscale">🏆</span>
         <p className="font-bold">More units coming soon</p>
       </div>
@@ -160,7 +160,7 @@ const SkillNode = ({ skill, unit, offset, isCurrent, open, onToggle }: SkillNode
         <div className="flex h-[100px] w-[100px] items-center justify-center">{button}</div>
       )}
 
-      <p className="mt-1 text-center text-xs font-extrabold uppercase tracking-wide text-neutral-400">
+      <p className="mt-1 text-center text-xs font-extrabold uppercase tracking-wide text-neutral-500">
         {skill.icon} {skill.title}
       </p>
 

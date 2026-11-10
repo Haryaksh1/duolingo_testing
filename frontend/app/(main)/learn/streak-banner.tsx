@@ -29,10 +29,10 @@ export const StreakBanner = ({ me, lessonId }: { me: Me; lessonId?: number }) =>
     >
       <FlameIcon muted={!!eb} className="h-10 w-10 shrink-0" />
       <div className="min-w-[160px] flex-1">
-        <p className={cn("font-extrabold", eb ? "text-rose-500" : "text-orange-500")}>
+        <p className={cn("font-extrabold", eb ? "text-rose-700 dark:text-rose-300" : "text-orange-700 dark:text-orange-300")}>
           {eb ? `Earn back your ${eb.lost_streak} day streak!` : `Your ${me.streak} day streak is at risk!`}
         </p>
-        <p className="text-sm font-semibold text-neutral-500">
+        <p className="text-sm font-semibold text-neutral-600">
           {eb
             ? `${eb.lessons_done} / ${eb.lessons_needed} lessons done · ends ${eb.deadline}`
             : "Finish a lesson before midnight to keep it."}

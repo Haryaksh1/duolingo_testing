@@ -14,14 +14,14 @@ const PracticeHub = async () => {
         stats.to_review > 0
           ? `${stats.to_review} exercise${stats.to_review === 1 ? "" : "s"} you've missed, mixed with ones you know. Earns back a heart.`
           : "Mix of exercises from lessons you've finished. Earns back a heart.",
-      color: "border-sky-300 bg-sky-100 text-sky-500",
+      color: "border-sky-300 bg-sky-100 text-sky-700 dark:text-sky-300",
     },
     {
       href: "/lesson/timed",
       icon: "⏱️",
       title: "Timed challenge",
       text: "Answer as many as you can in 90 seconds. 1 XP per correct answer, no hearts lost.",
-      color: "border-amber-400 bg-amber-50 text-amber-500",
+      color: "border-amber-400 bg-amber-50 text-amber-700 dark:text-amber-300",
     },
   ];
 
@@ -40,7 +40,7 @@ const PracticeHub = async () => {
           <span className="text-5xl">{m.icon}</span>
           <div>
             <h2 className="text-xl font-extrabold">{m.title}</h2>
-            <p className="font-semibold text-neutral-500">{m.text}</p>
+            <p className="font-semibold text-neutral-600">{m.text}</p>
           </div>
         </Link>
       ))}

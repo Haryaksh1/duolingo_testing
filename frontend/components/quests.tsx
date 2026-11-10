@@ -70,7 +70,7 @@ export const Quests = ({ me, full = false }: { me: Me; full?: boolean }) => (
                   className="h-4 bg-neutral-200"
                   indicatorClassName={done ? "bg-green-500" : "bg-amber-400"}
                 />
-                <span className="shrink-0 text-xs font-extrabold text-neutral-400">
+                <span className="shrink-0 text-xs font-extrabold text-neutral-500">
                   {Math.min(quest.progress, quest.target)}/{quest.target}
                 </span>
               </div>

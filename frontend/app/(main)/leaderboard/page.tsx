@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { LeagueBadge } from "./league-badge";
 import { LeagueResultModal } from "./result-modal";
 
-const MEDAL = ["text-amber-400", "text-neutral-400", "text-orange-600"];
+const MEDAL = ["🥇", "🥈", "🥉"];
 
 const ZoneLine = ({ kind }: { kind: "promotion" | "demotion" }) => (
   <div
@@ -58,14 +58,8 @@ const LeaderboardPage = async () => {
                 r.is_me && "bg-sky-100"
               )}
             >
-              <span
-                className={cn(
-                  "w-6 text-center font-extrabold",
-                  r.rank <= 3 ? MEDAL[r.rank - 1] : r.rank <= board.promote ? "text-green-500" : "text-neutral-500",
-                  r.rank > board.promote && r.rank >= demoteFrom && "text-rose-500"
-                )}
-              >
-                {r.rank}
+              <span className={cn("w-7 text-center font-extrabold", r.rank <= 3 ? "text-xl" : "text-neutral-500")}>
+                {r.rank <= 3 ? MEDAL[r.rank - 1] : r.rank}
               </span>
               <Image src={r.avatar} alt="" width={44} height={44} className="rounded-full border-2 bg-white" />
               <span className={cn("flex-1 truncate font-bold", r.is_me && "text-sky-500")}>{r.display_name}</span>
